@@ -175,6 +175,16 @@
       .streakdots i { width: 26px; height: 26px; border-radius: 8px; background: #262a35; border: 1px solid var(--line); display: grid; place-items: center; font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted); }
       .streakdots i.on { background: var(--gold); color: #191204; border-color: var(--gold-d); }
       .owned { font-size: 12px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+      .convertRate { font-weight: 800; color: var(--gold); font-size: 13.5px; }
+      .convertNums { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 8px; }
+      .convertNums .cnum { flex: 1; min-width: 120px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+      .convertNums .cnum small { display: block; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 3px; }
+      .convertNums .cnum b { font-size: 18px; line-height: 1.2; }
+      .withdrawBtn {
+        width: 100%; margin-top: 12px; background: #262a35; color: #9aa1b1; border: 1px solid var(--line);
+        border-radius: 10px; font-weight: 800; letter-spacing: .02em; cursor: not-allowed; opacity: .8;
+      }
+      .withdrawBtn:disabled { opacity: .65; cursor: not-allowed; }
 
       /* ---------- Battle ---------- */
       #battle .sheet { max-width: 460px; text-align: center; }
@@ -363,6 +373,17 @@
         <div class="sheetHead">
           <div><h2>Earn Points</h2><p class="sub">Every way to stack points &amp; shards in Sprite Hunt.</p></div>
           <button class="x" data-close type="button" aria-label="Close">✕</button>
+        </div>
+        <div class="secttl" style="margin-top:0">Convert to $SPRT</div>
+        <div class="row" style="display:block">
+          <div class="name">Your playtest balance</div>
+          <div class="convertNums">
+            <div class="cnum"><small>Points</small><b class="pts" id="convertPoints">⭐ 0</b></div>
+            <div class="cnum"><small>$SPRT equivalent</small><b style="color:var(--gold)" id="convertSprt">0 $SPRT</b></div>
+          </div>
+          <div class="convertRate">Rate: 100 Points = 1 $SPRT</div>
+          <div class="desc" style="margin-top:8px;line-height:1.55">Points you earn right now are <b style="color:var(--ink)">playtest points</b>. When withdrawals open, you&rsquo;ll sign in with Google and claim your playtest points <b style="color:var(--ink)">once</b> &mdash; up to <b style="color:var(--ink)">5,000 points per account</b> will be recognized. The claim window is <b style="color:var(--ink)">14 days</b> from the day withdrawals open.</div>
+          <button class="withdrawBtn" type="button" disabled>Withdraw &mdash; opens at $SPRT launch</button>
         </div>
         <div id="earnBody"></div>
       </div>
@@ -1534,6 +1555,10 @@ function refreshHUD() {
   $("uiColl").textContent = kinds + "/5 · " + S.totalCaught + " caught";
   $("shopPts").textContent = "⭐ " + fmt(S.points);
   $("shopShd").textContent = "◆ " + fmt(S.shards);
+  var cpEl = document.getElementById("convertPoints");
+  if (cpEl) cpEl.textContent = "⭐ " + fmt(S.points);
+  var csEl = document.getElementById("convertSprt");
+  if (csEl) csEl.textContent = fmt(Math.floor(S.points / 100)) + " $SPRT";
 }
 function awardPoints(n, silent) {
   S.points += n; S.daily.points += n;
