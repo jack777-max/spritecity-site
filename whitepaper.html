@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprite City — Whitepaper</title>
+<meta name="description" content="Sprite City whitepaper: the game, the points economy, the Sprite City token, conversion and seasons, the playtest claim, and the roadmap.">
+<style>
+  :root { --bg:#0b0f0c; --panel:#12180f; --line:#26331f; --txt:#e8f0e2; --mut:#9db38f; --acc:#8be04a; --acc2:#ffd94a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font-family:Verdana, Geneva, Tahoma, sans-serif; line-height:1.65; }
+  .wrap { max-width:820px; margin:0 auto; padding:32px 20px 80px; }
+  header { text-align:center; padding:36px 0 8px; }
+  header .leaf { font-size:52px; }
+  h1 { font-size:34px; margin:10px 0 4px; letter-spacing:1px; }
+  .sub { color:var(--mut); font-size:14px; }
+  .badge { display:inline-block; margin-top:14px; padding:5px 14px; border:1px solid var(--acc); color:var(--acc); border-radius:20px; font-size:12px; letter-spacing:1px; }
+  h2 { font-size:21px; margin:38px 0 10px; color:var(--acc); border-bottom:1px solid var(--line); padding-bottom:6px; }
+  h3 { font-size:16px; margin:22px 0 6px; color:var(--acc2); }
+  p, li { font-size:14.5px; }
+  ul { padding-left:20px; }
+  li { margin:4px 0; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { background:var(--panel); color:var(--acc); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:14px 0; }
+  .card p { margin:6px 0; }
+  .note { color:var(--mut); font-size:13px; }
+  a { color:var(--acc); }
+  .play { display:inline-block; margin-top:16px; background:var(--acc); color:#0b0f0c; font-weight:bold; padding:12px 26px; border-radius:8px; text-decoration:none; font-size:15px; }
+  footer { margin-top:56px; border-top:1px solid var(--line); padding-top:16px; color:var(--mut); font-size:12.5px; }
+  strong { color:#fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="leaf">🌿</div>
+  <h1>SPRITE CITY</h1>
+  <div class="sub">Whitepaper — the game, the points economy, and the Sprite City token</div>
+  <div class="badge">PLAYTEST LIVE — spritecity.world</div>
+</header>
+
+<h2>1. About Sprite City</h2>
+<p>Sprite City is a top-down city game on <strong>Robinhood Chain</strong>. You explore a living mini-city — on foot, by car, or by motorbike — hunting wild <strong>sprites</strong>: creatures whose types mirror well-known stocks. You catch them, collect them, duel rival hunters in a side-view arena, and run timed delivery missions across the districts.</p>
+<p>Playing earns <strong>points</strong>. Points are the game's score today and become convertible into the <strong>Sprite City token</strong> when the token launches. This paper explains exactly how that works — the rates, the caps, and the rules — so nothing about the economy is a surprise later.</p>
+
+<h2>2. The game</h2>
+<ul>
+  <li><strong>Hunt &amp; catch.</strong> Five sprite species roam the city. Weaken a sprite in its catch battle (or stun it with the Orb Blaster), then throw catch orbs to collect it.</li>
+  <li><strong>Arena duels.</strong> Rival hunters roam the map. Bump into one to duel: a best-of-3 side-view fight with punches, kicks, blocks, and orb shots — land the finisher for a bonus.</li>
+  <li><strong>City Run deliveries.</strong> Pick up a package and beat the clock to the destination. Pay is route points plus a time bonus, multiplied by your on-time streak (up to ×3).</li>
+  <li><strong>Drive &amp; ride.</strong> Parked cars and motorbikes wait at the roadside, and traffic cars brake when you step in front of them. Driving is fast — and raises your wanted stars.</li>
+  <li><strong>Daily rhythm.</strong> A daily check-in streak (50 → 500 pts over 7 days) and four daily missions worth up to +470 pts in total.</li>
+  <li><strong>Districts &amp; the golden sprite.</strong> Nine districts to discover, and a rare golden sprite that appears now and then — worth +500 pts if you catch it before it flees.</li>
+</ul>
+
+<h3>The sprites</h3>
+<table>
+  <tr><th>Type</th><th>Stock</th><th>Sprite</th></tr>
+  <tr><td>🔥 Fire</td><td>TSLA</td><td>Teslame</td></tr>
+  <tr><td>🌿 Grass</td><td>NVDA</td><td>Nvileaf</td></tr>
+  <tr><td>💧 Water</td><td>META</td><td>Metawave</td></tr>
+  <tr><td>⚙️ Steel</td><td>AAPL</td><td>Orchardroid</td></tr>
+  <tr><td>🔮 Psychic</td><td>PLTR</td><td>Psylantir</td></tr>
+</table>
+<p>Each species appears in common, uncommon, and rare forms — plus the golden sprite above.</p>
+
+<h2>3. Points</h2>
+<p>Points are earned by playing: catches, duel wins, deliveries, missions, check-ins, and exploration. During the playtest, points are stored on your device so anyone can jump in instantly — no account, no wallet.</p>
+<p>When player accounts open (before the token launch), points become <strong>server-side</strong>: earned in the game, recorded by the server, and withdrawable as tokens. See section 6 for how playtest points are honored.</p>
+
+<h2>4. The Sprite City token</h2>
+<div class="card">
+  <p><strong>Chain:</strong> Robinhood Chain</p>
+  <p><strong>Total supply:</strong> 1,000,000,000 — fixed, minted once at launch. No further minting, ever.</p>
+  <p><strong>Launch:</strong> fair launch. No presale.</p>
+  <p><strong>Utility:</strong> the premium tier of the in-game shop is priced in the token after launch, and points convert into the token for withdrawal (section 5).</p>
+</div>
+<p class="note">The token has not launched yet. Its contract address will be published <strong>only</strong> on spritecity.world and on the game's official X account when it exists. Any contract address published anywhere else is not official.</p>
+
+<h2>5. Conversion &amp; the reward pool</h2>
+<ul>
+  <li><strong>Season rate: 100 points = 1 Sprite City token.</strong> The rate for a season is announced before that season starts and never changes mid-season.</li>
+  <li><strong>Rewards are paid from a pre-funded reward pool.</strong> Points do not mint tokens. Before each season, the pool wallet is funded with tokens, and conversions are paid out of it. The pool wallet address is published at launch so anyone can verify its balance.</li>
+  <li><strong>Withdrawals open at the token launch.</strong> You connect a wallet only when you withdraw — playing never requires one.</li>
+  <li>A healthy, active player earns roughly 400–600 points a day from regular play.</li>
+</ul>
+
+<h2>6. The playtest claim</h2>
+<p>Playtest points count. When player accounts open:</p>
+<ul>
+  <li>Sign in, then claim your playtest progress <strong>once per account</strong>.</li>
+  <li>Up to <strong>5,000 playtest points</strong> per account are recognized.</li>
+  <li>Playtest claims convert at a <strong>bonus rate of 50 points = 1 token</strong> — up to 100 tokens per account, double the regular season rate.</li>
+  <li>Playtest claimants receive the <strong>OG Hunter</strong> badge and a <strong>1.5× points multiplier for all of Season 1</strong>.</li>
+  <li>The claim window is <strong>14 days</strong> from the day accounts open. Unclaimed playtest points expire after that; points earned after claiming are server-side only.</li>
+</ul>
+
+<h2>7. Fair play</h2>
+<p>Rewards attract bots, so the checks sit at the withdrawal gate, where they belong:</p>
+<ul>
+  <li>One wallet per account; a minimum points threshold to withdraw.</li>
+  <li>Account age and activity checks, plus rate limits on claims.</li>
+  <li>Flagged points are held for review instead of paid.</li>
+</ul>
+<p>Playing itself stays open and frictionless — no wallet, no sign-up wall during the playtest.</p>
+
+<h2>8. Roadmap</h2>
+<ul>
+  <li><strong>Phase 1 — Playtest (live now).</strong> The full game at spritecity.world: hunting, duels, deliveries, daily missions.</li>
+  <li><strong>Phase 2 — Accounts.</strong> Player sign-in opens; the playtest claim runs for 14 days.</li>
+  <li><strong>Phase 3 — Token launch &amp; Season 1.</strong> The Sprite City token launches on Robinhood Chain, withdrawals open, and Season 1 begins with its prize pool.</li>
+  <li><strong>Phase 4 — Seasons ahead.</strong> New seasons with rates set by the funded pool, new districts, and new sprites.</li>
+</ul>
+
+<h2>9. FAQ</h2>
+<h3>Do I need a wallet to play?</h3>
+<p>No. You only connect a wallet when you withdraw tokens.</p>
+<h3>Are my playtest points wasted?</h3>
+<p>No — see section 6. Claim them once accounts open: up to 5,000 points, at the 50:1 bonus rate, within the 14-day window.</p>
+<h3>When does the token launch?</h3>
+<p>After the playtest and the accounts phase. The date will be announced on spritecity.world and the official X account — nowhere else first.</p>
+<h3>Can points be bought?</h3>
+<p>No. Points are earned by playing only.</p>
+
+<footer>
+  <p><strong>Disclaimer.</strong> Points are an in-game score, not a financial instrument, and this paper is a game design document — not investment advice and not an offer of any security. Token details in section 4 describe the planned launch and will be confirmed on spritecity.world at launch time. Play responsibly.</p>
+  <p>© Sprite City — spritecity.world</p>
+</footer>
+
+<div style="text-align:center"><a class="play" href="/">▶ Play the playtest</a></div>
+
+</div>
+</body>
+</html>

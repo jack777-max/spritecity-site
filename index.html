@@ -186,6 +186,27 @@
         border-radius: 10px; font-weight: 800; letter-spacing: .02em; cursor: not-allowed; opacity: .8;
       }
       .withdrawBtn:disabled { opacity: .65; cursor: not-allowed; }
+      .aboutText { color: #d6dae3; font-size: 14px; line-height: 1.65; margin: 0 0 4px; }
+      .aboutList { margin: 0; padding: 0; list-style: none; }
+      .aboutList li {
+        position: relative; color: #d6dae3; font-size: 13.5px; line-height: 1.6;
+        padding: 7px 0 7px 20px; border-bottom: 1px solid var(--line);
+      }
+      .aboutList li:last-child { border-bottom: none; }
+      .aboutList li::before { content: "•"; position: absolute; left: 4px; color: var(--gold); font-weight: 800; }
+      .aboutList li b, .aboutText b { color: var(--ink); }
+      .aboutNote {
+        background: var(--panel2); border: 1px solid var(--line); border-radius: 12px;
+        padding: 12px 14px; color: #d6dae3; font-size: 13.5px; line-height: 1.6;
+      }
+      .wpBtn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; margin-top: 18px; padding: 0 16px; min-height: 3rem;
+        background: var(--gold); color: #191204; border: 1px solid var(--gold-d);
+        border-radius: 12px; font-weight: 800; font-size: 15px; text-decoration: none;
+        letter-spacing: .02em;
+      }
+      .wpBtn:active { transform: translateY(1px); }
 
       /* ---------- Battle ---------- */
       #battle .sheet { max-width: 460px; text-align: center; }
@@ -332,6 +353,7 @@
         <button class="hbtn" id="btnEarn" type="button">Earn</button>
         <button class="hbtn gold" id="btnShop" type="button">Shop</button>
         <button class="hbtn" id="btnDex" type="button">Sprites</button>
+        <button class="hbtn" id="btnAbout" type="button">About</button>
       </div>
     </div>
 
@@ -404,6 +426,43 @@
         </div>
         <div id="shopList"></div>
         <p class="sub" style="margin:12px 0 0">A premium gear tier priced in Sprite City tokens arrives later, once wallet linking opens at withdrawal. For now everything runs on points &amp; shards.</p>
+      </div>
+    </div>
+
+    <!-- About panel -->
+    <div class="scrim" id="aboutPanel">
+      <div class="sheet">
+        <div class="sheetHead">
+          <div><h2>About Sprite City</h2><p class="sub">The game, the Sprite City token, and how points convert.</p></div>
+          <button class="x" data-close type="button" aria-label="Close">✕</button>
+        </div>
+
+        <div class="secttl" style="margin-top:0">About</div>
+        <p class="aboutText">Sprite City is a top-down city game on Robinhood Chain. Hunt stock-type sprites, duel rival hunters in the arena, and run timed deliveries across nine districts. Playing earns points, and points become the Sprite City token when it launches.</p>
+
+        <div class="secttl">The Token</div>
+        <ul class="aboutList">
+          <li><b>Chain:</b> Robinhood Chain</li>
+          <li><b>Total supply: 1,000,000,000</b> — fixed, minted once at launch, no further minting</li>
+          <li>Fair launch, no presale</li>
+          <li>Premium shop tier priced in the token after launch</li>
+          <li>The contract address will be published <b>ONLY</b> on spritecity.world and the official X account. Anything published elsewhere is not official.</li>
+        </ul>
+
+        <div class="secttl">Points &amp; Conversion</div>
+        <ul class="aboutList">
+          <li><b>Season rate: 100 points = 1 Sprite City token</b>, announced before each season and never changed mid-season</li>
+          <li>Rewards are paid from a pre-funded reward pool wallet (address published at launch) — points never mint tokens</li>
+          <li>Withdrawals open at the token launch; a wallet is needed only to withdraw</li>
+        </ul>
+
+        <div class="secttl">Playtest Claim</div>
+        <p class="aboutText">Playtest points still count. Once sign-in opens, claim <b>once per account</b> — up to <b>5,000 points</b> will be recognized, at a bonus rate of <b>50 points = 1 Sprite City token</b> (up to <b>100 Sprite City tokens</b> per account). Playtest claimants also receive the <b>OG Hunter</b> badge and a <b>1.5&times; points multiplier</b> for all of Season 1. The claim window is <b>14 days</b>.</p>
+
+        <div class="secttl">Fair Play</div>
+        <p class="aboutNote">Withdrawals pass a gate of checks before they are paid: <b style="color:var(--ink)">one wallet per account</b>, a <b style="color:var(--ink)">minimum points</b> threshold, <b style="color:var(--ink)">account age &amp; activity checks</b>, and <b style="color:var(--ink)">rate limits</b>. Flagged points are held for review.</p>
+
+        <a class="wpBtn" href="https://spritecity.world/whitepaper.html" target="_blank" rel="noopener">📄 Read the full whitepaper</a>
       </div>
     </div>
 
@@ -1715,13 +1774,13 @@ $("btnShoot").addEventListener("click", doShoot);
 
 /* ---------------- Panels ---------------- */
 function openPanel(id) {
-  ["dexPanel", "earnPanel", "shopPanel"].forEach(function (p) { $(p).classList.toggle("open", p === id); });
+  ["dexPanel", "earnPanel", "shopPanel", "aboutPanel"].forEach(function (p) { $(p).classList.toggle("open", p === id); });
   if (id === "dexPanel") renderDex();
   if (id === "earnPanel") renderEarn();
   if (id === "shopPanel") renderShop();
   refreshHUD();
 }
-function closePanels() { ["dexPanel", "earnPanel", "shopPanel"].forEach(function (p) { $(p).classList.remove("open"); }); }
+function closePanels() { ["dexPanel", "earnPanel", "shopPanel", "aboutPanel"].forEach(function (p) { $(p).classList.remove("open"); }); }
 Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closePanels); });
 Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function (s) {
   s.addEventListener("click", function (e) { if (e.target === s && s.id !== "battle") closePanels(); });
@@ -1729,6 +1788,7 @@ Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function (s) {
 $("btnDex").addEventListener("click", function () { openPanel("dexPanel"); });
 $("btnEarn").addEventListener("click", function () { openPanel("earnPanel"); });
 $("btnShop").addEventListener("click", function () { openPanel("shopPanel"); });
+$("btnAbout").addEventListener("click", function () { openPanel("aboutPanel"); });
 
 function thumbCanvas(sp, golden, caught) {
   var wrap = document.createElement("div"); wrap.className = "thumb";
