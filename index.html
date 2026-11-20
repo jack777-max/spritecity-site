@@ -732,19 +732,41 @@ var CITY_NIGHT = {
   ground: "#262932", parkOuter: "#1e4630", parkInner: "#26573b",
   road: "#15161b", sidewalk: "#3b404c", lane: "#c8b458", crosswalk: "rgba(230,233,240,.5)",
   parkPath: "#7a6a4f",
-  treeShadow: "rgba(0,0,0,.35)", treeTrunk: "#5a4632", treeDark: "#2c7a3f", treeLight: "#3da353",
-  lampPost: "#101114", lampCore: "rgba(255,214,120,.9)", lampHalo: "rgba(255,190,80,.13)",
+  treeShadow: "rgba(0,0,0,.35)", treeTrunk: "#5a4632", treeDeep: "#1e5c2f", treeDark: "#2c7a3f", treeMid: "#35934c", treeLight: "#3da353",
+  lampPost: "#101114", lampCore: "rgba(255,214,120,.9)", lampHalo: "rgba(255,190,80,.13)", lampBase: "#23242a",
   bShadow: "rgba(0,0,0,.42)", roofs: ROOF_COLORS, bEdge: "rgba(0,0,0,.55)", bInner: "rgba(255,255,255,.13)",
-  roofShadow: "rgba(0,0,0,.28)", roofFill: "rgba(255,255,255,.16)", roofEdge: "rgba(0,0,0,.35)", roofCircle: "rgba(255,255,255,.2)"
+  roofShadow: "rgba(0,0,0,.28)", roofFill: "rgba(255,255,255,.16)", roofEdge: "rgba(0,0,0,.35)", roofCircle: "rgba(255,255,255,.2)",
+  seam: "rgba(0,0,0,.22)", shadeHi: "rgba(255,255,255,.08)", shadeLo: "rgba(0,0,0,.18)", facadeShade: "rgba(0,0,0,.32)",
+  winA: "#ffd76a", winB: "#20242e", skyGlass: "#33506e", tankBody: "#4d443a", tankTop: "#6a5f4f",
+  lawn: "#22503a", lawnAlt: "#1c4632",
+  houseRoofs: ["#5a3b34", "#4a4038", "#53455a", "#3f4a44", "#5c4a33", "#463a52"],
+  houseRoofHi: "rgba(255,255,255,.13)", houseWall: "#4c463c", houseDoor: "#241d16", driveway: "#2b2e36", fence: "#37312a",
+  grassDotA: "#173d28", grassDotB: "#2f6a45", soil: "#3a2f22",
+  flowers: ["#a34a68", "#a08a35", "#8f959e", "#6f5a9e", "#a05a30"],
+  bench: "#4a3a2c", benchEdge: "rgba(0,0,0,.4)", pathEdge: "rgba(0,0,0,.28)",
+  stone: "#3c414d", waterA: "#27507c", waterB: "#16293f", sparkle: "rgba(200,225,255,.75)",
+  curb: "#454b57", stopLine: "rgba(230,233,240,.55)", manhole: "rgba(0,0,0,.5)", patch: "rgba(0,0,0,.20)",
+  speckA: "rgba(255,255,255,.045)", speckB: "rgba(0,0,0,.16)"
 };
 var CITY_DAY = {
   ground: "#c9ced6", parkOuter: "#3dbb4a", parkInner: "#5dd65f",
   road: "#9aa1ab", sidewalk: "#e8ecf1", lane: "#f5f7fa", crosswalk: "rgba(255,255,255,.85)",
   parkPath: "#d9c49a",
-  treeShadow: "rgba(0,0,0,.18)", treeTrunk: "#8b6a45", treeDark: "#2e9e44", treeLight: "#5bc96a",
-  lampPost: "#6b7280", lampCore: "rgba(255,255,255,.35)", lampHalo: "rgba(255,255,255,.05)",
+  treeShadow: "rgba(0,0,0,.18)", treeTrunk: "#8b6a45", treeDeep: "#227a35", treeDark: "#2e9e44", treeMid: "#43b558", treeLight: "#5bc96a",
+  lampPost: "#6b7280", lampCore: "rgba(255,255,255,.35)", lampHalo: "rgba(255,255,255,.05)", lampBase: "#596069",
   bShadow: "rgba(0,0,0,.18)", roofs: ROOF_COLORS_DAY, bEdge: "rgba(0,0,0,.25)", bInner: "rgba(255,255,255,.35)",
-  roofShadow: "rgba(0,0,0,.12)", roofFill: "rgba(255,255,255,.38)", roofEdge: "rgba(0,0,0,.18)", roofCircle: "rgba(255,255,255,.45)"
+  roofShadow: "rgba(0,0,0,.12)", roofFill: "rgba(255,255,255,.38)", roofEdge: "rgba(0,0,0,.18)", roofCircle: "rgba(255,255,255,.45)",
+  seam: "rgba(70,50,30,.16)", shadeHi: "rgba(255,255,255,.14)", shadeLo: "rgba(30,30,60,.10)", facadeShade: "rgba(40,30,20,.22)",
+  winA: "#d8eef7", winB: "#9fc3d8", skyGlass: "#a8dcf2", tankBody: "#a98a68", tankTop: "#c4a67e",
+  lawn: "#55b84e", lawnAlt: "#49a845",
+  houseRoofs: ["#d95f43", "#e08a3c", "#8a5fb0", "#4a90c2", "#5da85f", "#c24a6e"],
+  houseRoofHi: "rgba(255,255,255,.22)", houseWall: "#f5ecd7", houseDoor: "#7a4a2b", driveway: "#bcc1ca", fence: "#977550",
+  grassDotA: "#2fae3f", grassDotB: "#7ce87a", soil: "#8a6a48",
+  flowers: ["#ff6b9d", "#ffd93d", "#ffffff", "#b388ff", "#ff8c42"],
+  bench: "#9a6a44", benchEdge: "rgba(90,55,25,.55)", pathEdge: "rgba(120,95,55,.4)",
+  stone: "#ccd3dc", waterA: "#5db9ec", waterB: "#2f8fd0", sparkle: "rgba(255,255,255,.85)",
+  curb: "#848b96", stopLine: "rgba(255,255,255,.85)", manhole: "rgba(70,76,86,.55)", patch: "rgba(50,55,64,.12)",
+  speckA: "rgba(70,76,86,.16)", speckB: "rgba(255,255,255,.20)"
 };
 var cityCanvas = document.createElement("canvas"); cityCanvas.width = WORLD; cityCanvas.height = WORLD;
 var cityCanvasDay = document.createElement("canvas"); cityCanvasDay.width = WORLD; cityCanvasDay.height = WORLD;
@@ -797,12 +819,107 @@ function paintCity(target, pal) {
       c.fillRect(cx + s * 20 - 4, cy + ROADW / 2 - 18, 8, 12);
     }
   }
+  /* curb lines — a thin line along each road edge, just inside the sidewalk */
+  c.strokeStyle = pal.curb; c.lineWidth = 2;
+  for (var ci = 0; ci <= WORLD / TILE; ci++) {
+    var cg = ci * TILE, ce = ROADW / 2 - 2;
+    c.beginPath();
+    c.moveTo(0, cg - ce); c.lineTo(WORLD, cg - ce);
+    c.moveTo(0, cg + ce); c.lineTo(WORLD, cg + ce);
+    c.moveTo(cg - ce, 0); c.lineTo(cg - ce, WORLD);
+    c.moveTo(cg + ce, 0); c.lineTo(cg + ce, WORLD);
+    c.stroke();
+  }
+  /* stop lines — a solid bar across one lane just before every crosswalk */
+  c.fillStyle = pal.stopLine;
+  for (var sa = 0; sa <= WORLD / TILE; sa++) for (var sb = 0; sb <= WORLD / TILE; sb++) {
+    var scx = sa * TILE, scy = sb * TILE, shw = ROADW / 2;
+    c.fillRect(scx - shw + 8, scy - shw - 15, shw - 16, 5);   /* north approach */
+    c.fillRect(scx + 8, scy + shw + 10, shw - 16, 5);        /* south approach */
+    c.fillRect(scx - shw - 15, scy + 8, 5, shw - 16);        /* west approach */
+    c.fillRect(scx + shw + 10, scy - shw + 8, 5, shw - 16);  /* east approach */
+  }
+  /* sparse asphalt wear: manhole covers + darker patch rectangles (roads only) */
+  for (var ad = 0; ad < 44; ad++) {
+    var ax = rng() * WORLD, ay = rng() * WORLD;
+    if (!onRoad(ax, ay)) continue;
+    if (rng() < 0.5) {
+      c.strokeStyle = pal.manhole; c.lineWidth = 1.6;
+      c.beginPath(); c.arc(ax, ay, 5.5, 0, 7); c.stroke();
+      c.beginPath(); c.arc(ax, ay, 2.6, 0, 7); c.stroke();
+    } else {
+      c.fillStyle = pal.patch;
+      c.fillRect(ax - 10 - rng() * 16, ay - 7 - rng() * 8, 20 + rng() * 30, 14 + rng() * 16);
+    }
+  }
   /* park paths + trees */
   for (var key2 in parkTiles) {
     var pp = key2.split(","), qx = +pp[0] * TILE, qy = +pp[1] * TILE;
     c.fillStyle = pal.parkPath;
     c.fillRect(qx, qy + TILE / 2 - 13, TILE, 26);
     c.fillRect(qx + TILE / 2 - 13, qy, 26, TILE);
+    var pcx = qx + TILE / 2, pcy = qy + TILE / 2;
+    /* grass texture speckle across the park */
+    for (var gs = 0; gs < 850; gs++) {
+      var gx = qx + 6 + rng() * (TILE - 12), gy = qy + 6 + rng() * (TILE - 12);
+      if (Math.abs(gx - pcx) < 17 || Math.abs(gy - pcy) < 17) continue;   /* keep the paths clean */
+      c.fillStyle = rng() < 0.5 ? pal.grassDotA : pal.grassDotB;
+      if (rng() < 0.5) c.fillRect(gx, gy, 2.4, 2.4); else c.fillRect(gx, gy, 4.5, 1.6);
+    }
+    /* thin edge lines along the park paths */
+    c.strokeStyle = pal.pathEdge; c.lineWidth = 1.6;
+    c.beginPath();
+    c.moveTo(qx + 4, pcy - 14); c.lineTo(qx + TILE - 4, pcy - 14);
+    c.moveTo(qx + 4, pcy + 14); c.lineTo(qx + TILE - 4, pcy + 14);
+    c.moveTo(pcx - 14, qy + 4); c.lineTo(pcx - 14, qy + TILE - 4);
+    c.moveTo(pcx + 14, qy + 4); c.lineTo(pcx + 14, qy + TILE - 4);
+    c.stroke();
+    /* flower beds flanking the paths */
+    var beds = [
+      [pcx - 150, pcy - 44, 92, 20], [pcx + 58, pcy - 44, 92, 20],
+      [pcx - 150, pcy + 24, 92, 20], [pcx + 58, pcy + 24, 92, 20],
+      [pcx - 44, pcy - 150, 20, 92], [pcx - 44, pcy + 58, 20, 92],
+      [pcx + 24, pcy - 150, 20, 92], [pcx + 24, pcy + 58, 20, 92]
+    ];
+    beds.forEach(function (bd) {
+      c.fillStyle = pal.soil; c.fillRect(bd[0], bd[1], bd[2], bd[3]);
+      for (var fb2 = 0; fb2 < 30; fb2++) {
+        c.fillStyle = pal.flowers[Math.floor(rng() * pal.flowers.length)];
+        c.fillRect(bd[0] + 2 + rng() * (bd[2] - 4), bd[1] + 2 + rng() * (bd[3] - 4), 2.6, 2.6);
+      }
+      for (var gl = 0; gl < 10; gl++) {
+        c.fillStyle = pal.grassDotB;
+        c.fillRect(bd[0] + 2 + rng() * (bd[2] - 4), bd[1] + 2 + rng() * (bd[3] - 4), 2.2, 2.2);
+      }
+    });
+    /* benches beside the paths */
+    var benchSpots = [
+      [pcx - 108, pcy - 34, 0], [pcx + 84, pcy + 22, 0], [pcx - 196, pcy + 22, 0], [pcx + 172, pcy - 34, 0],
+      [pcx - 34, pcy - 108, 1], [pcx + 22, pcy + 84, 1], [pcx + 22, pcy - 196, 1], [pcx - 34, pcy + 172, 1]
+    ];
+    benchSpots.forEach(function (bs) {
+      var bw = bs[2] ? 8 : 24, bh = bs[2] ? 24 : 8;
+      c.fillStyle = pal.treeShadow; c.fillRect(bs[0] + 2, bs[1] + 3, bw, bh);
+      c.fillStyle = pal.bench; c.fillRect(bs[0], bs[1], bw, bh);
+      c.strokeStyle = pal.benchEdge; c.lineWidth = 1;
+      c.beginPath();
+      if (bs[2]) { for (var s1 = 1; s1 <= 2; s1++) { c.moveTo(bs[0] + s1 * bw / 3, bs[1] + 1); c.lineTo(bs[0] + s1 * bw / 3, bs[1] + bh - 1); } }
+      else { for (var s2 = 1; s2 <= 2; s2++) { c.moveTo(bs[0] + 1, bs[1] + s2 * bh / 3); c.lineTo(bs[0] + bw - 1, bs[1] + s2 * bh / 3); } }
+      c.stroke();
+    });
+    /* fountain where the paths cross */
+    c.fillStyle = pal.treeShadow; c.beginPath(); c.ellipse(pcx + 3, pcy + 5, 37, 30, 0, 0, 7); c.fill();
+    c.fillStyle = pal.stone; c.beginPath(); c.arc(pcx, pcy, 35, 0, 7); c.fill();
+    var wg = c.createRadialGradient(pcx - 6, pcy - 6, 3, pcx, pcy, 28);
+    wg.addColorStop(0, pal.waterA); wg.addColorStop(1, pal.waterB);
+    c.fillStyle = wg; c.beginPath(); c.arc(pcx, pcy, 27, 0, 7); c.fill();
+    c.fillStyle = pal.stone; c.beginPath(); c.arc(pcx, pcy, 8.5, 0, 7); c.fill();
+    c.fillStyle = pal.waterA; c.beginPath(); c.arc(pcx, pcy, 4.5, 0, 7); c.fill();
+    c.fillStyle = pal.sparkle;
+    for (var sp = 0; sp < 7; sp++) {
+      var sang = rng() * 6.283, srad = 11 + rng() * 13;
+      c.fillRect(pcx + Math.cos(sang) * srad - 1, pcy + Math.sin(sang) * srad - 1, 2.4, 2.4);
+    }
     for (var t = 0; t < 26; t++) {
       var tx = qx + 40 + rng() * (TILE - 80), ty = qy + 40 + rng() * (TILE - 80);
       if (Math.abs(tx - (qx + TILE / 2)) < 30 || Math.abs(ty - (qy + TILE / 2)) < 30) continue;
@@ -829,6 +946,17 @@ function paintCity(target, pal) {
     if (parkTiles[bx + "," + by]) continue;
     var x0 = bx * TILE + ROADW / 2 + 22, y0 = by * TILE + ROADW / 2 + 22;
     var area = TILE - ROADW - 44;
+    /* per-block tonal wash + subtle pavement speckle */
+    c.fillStyle = rng() < 0.5 ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.045)";
+    c.fillRect(bx * TILE + ROADW / 2, by * TILE + ROADW / 2, TILE - ROADW, TILE - ROADW);
+    for (var pk = 0; pk < 110; pk++) {
+      c.fillStyle = rng() < 0.5 ? pal.speckA : pal.speckB;
+      c.fillRect(x0 + rng() * area, y0 + rng() * area, 2, 2);
+    }
+    if (districtAt(bx * TILE + TILE / 2, by * TILE + TILE / 2) === 8) {
+      drawHouses(c, x0, y0, area, pal);   /* Suburbs: residential plots instead of towers */
+      continue;
+    }
     var layout = Math.floor(rng() * 3), rects = [];
     if (layout === 0) {          /* four towers */
       var hw = (area - 26) / 2;
@@ -846,15 +974,104 @@ function paintCity(target, pal) {
     });
   }
 }
+/* Suburbs block: a 3x3 grid of house plots. Only the house rect collides;
+   lawns, driveways and yards stay walkable. */
+function drawHouses(c, x0, y0, area, pal) {
+  var pw = area / 3, ph = area / 3;
+  for (var gx = 0; gx < 3; gx++) for (var gy = 0; gy < 3; gy++) {
+    var px = x0 + gx * pw, py = y0 + gy * ph;
+    /* lawn / yard patch */
+    c.fillStyle = rng() < 0.5 ? pal.lawn : pal.lawnAlt;
+    c.fillRect(px + 3, py + 3, pw - 6, ph - 6);
+    for (var ls = 0; ls < 14; ls++) {
+      c.fillStyle = rng() < 0.5 ? pal.grassDotA : pal.grassDotB;
+      c.fillRect(px + 5 + rng() * (pw - 10), py + 5 + rng() * (ph - 10), 2, 2);
+    }
+    /* the house — smaller than a tower, centred-ish in its plot */
+    var hw2 = 54 + rng() * 14, hh2 = 42 + rng() * 10;
+    var hx = px + (pw - hw2) / 2 + (rng() - 0.5) * 10;
+    var hy = py + 12 + rng() * 10;
+    /* driveway from the house down to the plot's south edge */
+    c.fillStyle = pal.driveway;
+    c.fillRect(hx + hw2 / 2 - 8 + (rng() - 0.5) * 8, hy + hh2, 16, py + ph - (hy + hh2) - 3);
+    var rect = { x: hx, y: hy, w: hw2, h: hh2 };
+    buildings.push(rect);
+    c.fillStyle = pal.bShadow; c.fillRect(hx + 6, hy + 8, hw2, hh2);   /* soft drop shadow */
+    var roofCol = pal.houseRoofs[Math.floor(rng() * pal.houseRoofs.length)];
+    var vertical = rng() < 0.5;   /* ridge runs north-south or east-west */
+    c.fillStyle = roofCol; c.fillRect(hx, hy, hw2, hh2);
+    c.fillStyle = pal.houseRoofHi;   /* sunlit roof plane */
+    if (vertical) c.fillRect(hx, hy, hw2 / 2, hh2); else c.fillRect(hx, hy, hw2, hh2 / 2);
+    c.fillStyle = pal.shadeLo;       /* shaded roof plane */
+    if (vertical) c.fillRect(hx + hw2 / 2, hy, hw2 / 2, hh2); else c.fillRect(hx, hy + hh2 / 2, hw2, hh2 / 2);
+    c.strokeStyle = pal.bEdge; c.lineWidth = 2; c.strokeRect(hx + 1, hy + 1, hw2 - 2, hh2 - 2);
+    c.strokeStyle = pal.seam; c.lineWidth = 1.6; c.beginPath();   /* ridge line */
+    if (vertical) { c.moveTo(hx + hw2 / 2, hy + 2); c.lineTo(hx + hw2 / 2, hy + hh2 - 2); }
+    else { c.moveTo(hx + 2, hy + hh2 / 2); c.lineTo(hx + hw2 - 2, hy + hh2 / 2); }
+    c.stroke();
+    /* wall strip along the south edge: door + windows */
+    c.fillStyle = pal.houseWall; c.fillRect(hx + 2, hy + hh2 - 11, hw2 - 4, 9);
+    c.fillStyle = pal.houseDoor; c.fillRect(hx + hw2 / 2 - 3.5, hy + hh2 - 10, 7, 9);
+    c.fillStyle = rng() < 0.72 ? pal.winA : pal.winB; c.fillRect(hx + 7, hy + hh2 - 9, 7, 5);
+    if (rng() < 0.8) { c.fillStyle = rng() < 0.72 ? pal.winA : pal.winB; c.fillRect(hx + hw2 - 14, hy + hh2 - 9, 7, 5); }
+    /* low fence lines along some plot edges */
+    c.strokeStyle = pal.fence; c.lineWidth = 1.6;
+    if (rng() < 0.55) { c.beginPath(); c.moveTo(px + 4, py + 4); c.lineTo(px + pw - 4, py + 4); c.stroke(); }
+    if (rng() < 0.4) { c.beginPath(); c.moveTo(px + 4, py + 4); c.lineTo(px + 4, py + ph - 4); c.stroke(); }
+    if (rng() < 0.4) { c.beginPath(); c.moveTo(px + pw - 4, py + 4); c.lineTo(px + pw - 4, py + ph - 4); c.stroke(); }
+    /* an occasional small tree or bush in the yard */
+    var flora = rng();
+    if (flora < 0.42) {
+      var fx = px + 14 + rng() * (pw - 28), fy = py + ph - 16 - rng() * 8;
+      if (fx > hx - 12 && fx < hx + hw2 + 12 && fy > hy - 12 && fy < hy + hh2 + 12) fx = px + 13;
+      drawTree(c, fx, fy, 6.5 + rng() * 2.5, pal);
+    } else if (flora < 0.68) {
+      var bx2 = px + 12 + rng() * (pw - 24), by2 = py + ph - 12;
+      c.fillStyle = pal.treeShadow; c.beginPath(); c.ellipse(bx2 + 1.5, by2 + 2.5, 6, 3.2, 0, 0, 7); c.fill();
+      c.fillStyle = pal.treeDeep; c.beginPath(); c.arc(bx2, by2, 5.6, 0, 7); c.fill();
+      c.fillStyle = pal.treeMid; c.beginPath(); c.arc(bx2 - 1.8, by2 - 1.6, 3.6, 0, 7); c.fill();
+      c.fillStyle = pal.treeLight; c.beginPath(); c.arc(bx2 - 2.4, by2 - 2.6, 2, 0, 7); c.fill();
+    }
+  }
+}
 function drawTree(c, x, y, r, pal) {
   pal = pal || CITY_NIGHT;
-  c.fillStyle = pal.treeShadow; c.beginPath(); c.ellipse(x + 3, y + 5, r, r * 0.55, 0, 0, 7); c.fill();
-  c.fillStyle = pal.treeTrunk; c.fillRect(x - 2, y - 2, 4, 7);
-  c.fillStyle = pal.treeDark; c.beginPath(); c.arc(x, y - 3, r, 0, 7); c.fill();
-  c.fillStyle = pal.treeLight; c.beginPath(); c.arc(x - r * 0.3, y - r * 0.45, r * 0.62, 0, 7); c.fill();
+  c.fillStyle = pal.treeShadow; c.beginPath(); c.ellipse(x + 3, y + 5, r * 1.05, r * 0.55, 0, 0, 7); c.fill();
+  c.fillStyle = pal.treeTrunk; c.fillRect(x - 2, y - 1, 4, 7);
+  var wide = rng() < 0.35;   /* some canopies spread wider than tall */
+  /* dark base canopy */
+  c.fillStyle = pal.treeDeep; c.beginPath(); c.ellipse(x, y - 3, r * (wide ? 1.28 : 1), r * (wide ? 0.86 : 1), 0, 0, 7); c.fill();
+  /* mid-tone cluster circles */
+  c.fillStyle = pal.treeDark;
+  var mids = [[-0.36, -0.26, 0.62], [0.38, -0.16, 0.58], [0.04, 0.3, 0.6], [-0.08, -0.52, 0.52]];
+  for (var mi = 0; mi < 4; mi++) {
+    var mc = mids[mi];
+    c.beginPath(); c.arc(x + (mc[0] + (rng() - 0.5) * 0.16) * r, y - 3 + (mc[1] + (rng() - 0.5) * 0.16) * r, r * mc[2], 0, 7); c.fill();
+  }
+  /* a second mid layer for depth */
+  c.fillStyle = pal.treeMid;
+  var mids2 = [[0.3, 0.26, 0.44], [-0.42, 0.14, 0.42]];
+  for (var mj = 0; mj < 2; mj++) {
+    var mc2 = mids2[mj];
+    c.beginPath(); c.arc(x + (mc2[0] + (rng() - 0.5) * 0.14) * r, y - 3 + (mc2[1] + (rng() - 0.5) * 0.14) * r, r * mc2[2], 0, 7); c.fill();
+  }
+  /* light highlight clusters toward the top-left */
+  c.fillStyle = pal.treeLight;
+  var his = [[-0.34, -0.44, 0.4], [-0.52, -0.12, 0.3], [-0.12, -0.6, 0.28]];
+  for (var hi2 = 0; hi2 < 3; hi2++) {
+    var hc = his[hi2];
+    c.beginPath(); c.arc(x + (hc[0] + (rng() - 0.5) * 0.12) * r, y - 3 + (hc[1] + (rng() - 0.5) * 0.12) * r, r * hc[2], 0, 7); c.fill();
+  }
+  /* dark speckle dots */
+  c.fillStyle = pal.treeDeep;
+  for (var sd = 0; sd < 3; sd++) {
+    c.fillRect(x + (rng() - 0.5) * r * 1.3, y - 3 + (rng() - 0.5) * r * 1.1, 2.2, 2.2);
+  }
 }
 function drawLamp(c, x, y, pal) {
   pal = pal || CITY_NIGHT;
+  c.fillStyle = pal.treeShadow; c.beginPath(); c.ellipse(x + 2, y + 3.5, 7.5, 3.6, 0, 0, 7); c.fill();   /* soft ground shadow */
+  c.fillStyle = pal.lampBase; c.fillRect(x - 3.5, y - 3.5, 7, 7);   /* base plate */
   c.fillStyle = pal.lampPost; c.fillRect(x - 2, y - 2, 4, 4);
   c.fillStyle = pal.lampCore; c.beginPath(); c.arc(x, y, 3.4, 0, 7); c.fill();
   c.fillStyle = pal.lampHalo; c.beginPath(); c.arc(x, y, 13, 0, 7); c.fill();
@@ -864,20 +1081,89 @@ function drawBuilding(c, r, pal) {
   c.fillStyle = pal.bShadow; c.fillRect(r.x + 12, r.y + 16, r.w, r.h);   /* drop shadow = height */
   var col = pal.roofs[Math.floor(rng() * pal.roofs.length)];
   c.fillStyle = col; c.fillRect(r.x, r.y, r.w, r.h);
+  /* per-building lightness wash — no two roofs read exactly alike */
+  if (rng() < 0.5) { c.fillStyle = "rgba(255,255,255," + (0.03 + rng() * 0.05).toFixed(3) + ")"; }
+  else { c.fillStyle = "rgba(0,0,0," + (0.03 + rng() * 0.06).toFixed(3) + ")"; }
+  c.fillRect(r.x, r.y, r.w, r.h);
+  /* soft shading: light falls from the top-left, shade pools bottom-right */
+  var gw = Math.max(12, r.w * 0.5), gh = Math.max(12, r.h * 0.5);
+  var g1 = c.createLinearGradient(r.x, r.y, r.x + gw, r.y + gh);
+  g1.addColorStop(0, pal.shadeHi); g1.addColorStop(1, "rgba(255,255,255,0)");
+  c.fillStyle = g1; c.fillRect(r.x, r.y, gw, gh);
+  var g2 = c.createLinearGradient(r.x + r.w, r.y + r.h, r.x + r.w - gw, r.y + r.h - gh);
+  g2.addColorStop(0, pal.shadeLo); g2.addColorStop(1, "rgba(0,0,0,0)");
+  c.fillStyle = g2; c.fillRect(r.x + r.w - gw, r.y + r.h - gh, gw, gh);
+  /* roof panel seams */
+  c.strokeStyle = pal.seam; c.lineWidth = 1; c.beginPath();
+  var stepX = 34 + rng() * 14, stepY = 34 + rng() * 14;
+  for (var sx2 = r.x + stepX; sx2 < r.x + r.w - 8; sx2 += stepX) { c.moveTo(sx2, r.y + 4); c.lineTo(sx2, r.y + r.h - 4); }
+  for (var sy2 = r.y + stepY; sy2 < r.y + r.h - 8; sy2 += stepY) { c.moveTo(r.x + 4, sy2); c.lineTo(r.x + r.w - 4, sy2); }
+  c.stroke();
+  /* parapet: outer edge, inner inset line, corner accents */
   c.strokeStyle = pal.bEdge; c.lineWidth = 3; c.strokeRect(r.x + 1.5, r.y + 1.5, r.w - 3, r.h - 3);
   c.strokeStyle = pal.bInner; c.lineWidth = 1.5; c.strokeRect(r.x + 8, r.y + 8, r.w - 16, r.h - 16);
-  /* rooftop details: AC units, vents, water tank */
+  c.fillStyle = pal.bEdge;
+  [[r.x + 4, r.y + 4], [r.x + r.w - 9, r.y + 4], [r.x + 4, r.y + r.h - 9], [r.x + r.w - 9, r.y + r.h - 9]].forEach(function (cp) {
+    c.fillRect(cp[0], cp[1], 5, 5);
+  });
+  /* rooftop props: AC units with fans, water tanks, vent pipes, skylights */
   var n = 1 + Math.floor(rng() * 3);
   for (var i = 0; i < n; i++) {
     var w = 16 + rng() * (r.w * 0.28), h = 12 + rng() * (r.h * 0.22);
-    var x = r.x + 12 + rng() * Math.max(4, r.w - w - 24), y = r.y + 12 + rng() * Math.max(4, r.h - h - 24);
-    c.fillStyle = pal.roofShadow; c.fillRect(x + 3, y + 4, w, h);
-    c.fillStyle = pal.roofFill; c.fillRect(x, y, w, h);
-    c.strokeStyle = pal.roofEdge; c.lineWidth = 1; c.strokeRect(x, y, w, h);
+    var x = r.x + 14 + rng() * Math.max(4, r.w - w - 28), y = r.y + 14 + rng() * Math.max(4, r.h - h - 30);
+    var kind = rng();
+    if (kind < 0.42) {          /* AC unit: box + fan circle + slats */
+      c.fillStyle = pal.roofShadow; c.fillRect(x + 3, y + 4, w, h);
+      c.fillStyle = pal.roofFill; c.fillRect(x, y, w, h);
+      c.strokeStyle = pal.roofEdge; c.lineWidth = 1; c.strokeRect(x, y, w, h);
+      var fr = Math.min(w, h) * 0.3;
+      c.beginPath(); c.arc(x + w / 2, y + h / 2, fr, 0, 7); c.stroke();
+      c.beginPath(); c.arc(x + w / 2, y + h / 2, fr * 0.45, 0, 7); c.stroke();
+      c.beginPath();
+      c.moveTo(x + w / 2 - fr, y + h / 2); c.lineTo(x + w / 2 + fr, y + h / 2);
+      c.moveTo(x + w / 2, y + h / 2 - fr); c.lineTo(x + w / 2, y + h / 2 + fr);
+      c.stroke();
+    } else if (kind < 0.62) {   /* water tank: cylinder with shaded body + ellipse top */
+      var tw = Math.max(18, w * 0.8), th = Math.max(14, h * 0.9);
+      c.fillStyle = pal.roofShadow; c.fillRect(x + 3, y + 4, tw, th);
+      c.fillStyle = pal.tankBody; c.fillRect(x, y + 3, tw, th - 3);
+      c.fillStyle = pal.shadeLo; c.fillRect(x + tw * 0.55, y + 3, tw * 0.45, th - 3);
+      c.fillStyle = pal.tankTop; c.beginPath(); c.ellipse(x + tw / 2, y + 3, tw / 2, 4.5, 0, 0, 7); c.fill();
+      c.strokeStyle = pal.roofEdge; c.lineWidth = 1; c.strokeRect(x, y + 3, tw, th - 3);
+    } else if (kind < 0.8) {    /* vent pipe: small circle + highlight */
+      var vr = 4 + rng() * 2.5;
+      c.fillStyle = pal.roofShadow; c.beginPath(); c.arc(x + 2, y + 2.5, vr, 0, 7); c.fill();
+      c.fillStyle = pal.roofFill; c.beginPath(); c.arc(x, y, vr, 0, 7); c.fill();
+      c.strokeStyle = pal.roofEdge; c.lineWidth = 1; c.beginPath(); c.arc(x, y, vr, 0, 7); c.stroke();
+      c.fillStyle = pal.bInner; c.fillRect(x - vr * 0.45, y - vr * 0.45, 2, 2);
+    } else {                    /* glass skylight */
+      c.fillStyle = pal.roofShadow; c.fillRect(x + 3, y + 4, w, h);
+      c.fillStyle = pal.skyGlass; c.fillRect(x, y, w, h);
+      c.strokeStyle = pal.roofEdge; c.lineWidth = 1; c.strokeRect(x, y, w, h);
+      c.strokeStyle = pal.bInner; c.beginPath();
+      c.moveTo(x + 2, y + h - 2); c.lineTo(x + w * 0.45, y + 2);
+      c.moveTo(x + w / 2, y); c.lineTo(x + w / 2, y + h);
+      c.stroke();
+    }
   }
   if (rng() > 0.55) { /* helipad / tank circle */
     c.strokeStyle = pal.roofCircle; c.lineWidth = 2;
     c.beginPath(); c.arc(r.x + r.w * (0.3 + rng() * 0.4), r.y + r.h * (0.3 + rng() * 0.4), 13, 0, 7); c.stroke();
+  }
+  /* facade bands with windows: a wide strip on the south edge, a thinner one east */
+  var fb = 15;
+  c.fillStyle = pal.facadeShade;
+  c.fillRect(r.x + 2, r.y + r.h - fb - 2, r.w - 4, fb);
+  c.fillRect(r.x + r.w - 12, r.y + 2, 10, r.h - fb - 4);
+  var nw = Math.max(2, Math.floor((r.w - 18) / 16));
+  for (var wi = 0; wi < nw; wi++) {
+    c.fillStyle = rng() < 0.72 ? pal.winA : pal.winB;
+    c.fillRect(r.x + 9 + wi * 16, r.y + r.h - fb + 2.5, 8, 6);
+  }
+  var nh = Math.max(2, Math.floor((r.h - fb - 16) / 16));
+  for (var wj = 0; wj < nh; wj++) {
+    c.fillStyle = rng() < 0.72 ? pal.winA : pal.winB;
+    c.fillRect(r.x + r.w - 9.5, r.y + 8 + wj * 16, 5, 8);
   }
 }
 function onRoad(x, y) {
@@ -2434,7 +2720,9 @@ function drawCar(x, y, ang, color, brake) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
   ctx.fillStyle = "rgba(0,0,0,.4)"; roundRect(-19, -9, 42, 22, 6); ctx.fill();
   ctx.fillStyle = color; roundRect(-21, -11, 42, 22, 6); ctx.fill();
-  ctx.fillStyle = "rgba(15,20,28,.85)"; roundRect(-6, -8, 15, 16, 3); ctx.fill();
+  ctx.fillStyle = "rgba(15,20,28,.7)"; roundRect(-19, -7, 5, 14, 2); ctx.fill();   /* rear window */
+  ctx.fillStyle = "rgba(255,255,255,.16)"; roundRect(-13, -6.5, 10, 13, 3); ctx.fill();   /* lighter roof panel */
+  ctx.fillStyle = "rgba(15,20,28,.85)"; roundRect(-2, -8, 13, 16, 3); ctx.fill();
   ctx.fillStyle = "#ffe9a8"; ctx.fillRect(19, -8, 3, 5); ctx.fillRect(19, 3, 3, 5);
   if (brake) { /* stopped for the player: brake lights flare so it reads as waiting */
     ctx.fillStyle = "rgba(255,60,40,.35)"; ctx.fillRect(-27, -10, 6, 9); ctx.fillRect(-27, 1, 6, 9);
