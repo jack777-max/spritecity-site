@@ -76,6 +76,8 @@
       }
       .tag b { color: var(--ink); }
       .tag.combo { border-color: var(--gold-d); color: var(--gold); }
+      .tag.phase { border-color: #4a5a7a; color: var(--ink); }
+      .tag.goldhour { border-color: var(--gold-d); color: var(--gold); }
       .tag.boost { border-color: #2f6b46; color: var(--green); }
       .tag.deliv { border-color: #8a5a1e; color: #ffb03a; pointer-events: none; }
       .dbar { display: inline-block; width: 64px; height: 7px; background: #262a35; border-radius: 99px; overflow: hidden; vertical-align: middle; margin-left: 2px; }
@@ -366,6 +368,8 @@
     </div>
 
     <div id="subbar">
+      <span class="tag phase" id="phaseTag">☀️ Day</span>
+      <span class="tag goldhour" id="goldTag" style="display:none">✨ GOLDEN HOUR — golden sprites are out!</span>
       <span class="tag combo" id="comboTag" style="display:none">COMBO <b id="comboTxt"></b></span>
       <span class="tag boost" id="lureTag" style="display:none">🧲 Lure <b id="lureTxt"></b></span>
       <span class="tag boost" id="radarTag" style="display:none">📡 Radar <b id="radarTxt"></b></span>
@@ -446,7 +450,7 @@
         </div>
 
         <div class="secttl" style="margin-top:0">About</div>
-        <p class="aboutText">Sprite City is a top-down city game on Robinhood Chain. Hunt stock-type sprites, duel rival hunters in the arena, and run timed deliveries across nine districts. Playing earns points, and points become the Sprite City token when it launches.</p>
+        <p class="aboutText">Sprite City is a top-down city game on Robinhood Chain. Hunt stock-type sprites, duel rival hunters in the arena, and run timed deliveries across nine districts. Playing earns points, and points become the Sprite City token when it launches. The city runs on a day/night cycle — dusk is golden hour, when golden sprites appear far more often, Psychic and Steel sprites favor the night, and deliveries completed at night pay +25%.</p>
 
         <div class="secttl">The Token</div>
         <ul class="aboutList">
@@ -692,6 +696,7 @@ function defaultSave() {
     boosts: { lureUntil: 0, radarUntil: 0 },
     daily: freshDaily(),
     checkin: { lastDate: "", streak: 0 },
+    dayStreak: { lastDay: "", count: 0 },
     districts: [],
     combo: { streak: 0, last: 0 },
     battled: false,
@@ -707,6 +712,7 @@ try {
   S.boosts = Object.assign({ lureUntil: 0, radarUntil: 0 }, S.boosts || {});
   S.daily = Object.assign(freshDaily(), S.daily || {});
   S.checkin = Object.assign({ lastDate: "", streak: 0 }, S.checkin || {});
+  S.dayStreak = Object.assign({ lastDay: "", count: 0 }, S.dayStreak || {});
   S.combo = Object.assign({ streak: 0, last: 0 }, S.combo || {});
   S.deliver = Object.assign({ done: 0, best: 1, earned: 0, streak: 0 }, S.deliver || {});
 } catch (e) { S = defaultSave(); }
@@ -1483,12 +1489,14 @@ function completeDelivery() {
   var timeBonus = Math.round(d.timeLeft * 2);
   var mult = delivMult();
   var pay = Math.round((base + timeBonus) * mult);
+  var nightBonus = 0;
+  if (isNight()) { nightBonus = Math.round(pay * 0.25); pay += nightBonus; }
   awardPoints(pay);
   S.deliver.done++; S.deliver.earned += pay; S.deliver.streak++;
   S.deliver.best = Math.max(S.deliver.best, delivMult());
   S.daily.deliveries = (S.daily.deliveries || 0) + 1;
   save(); refreshHUD();
-  toast("🏁 Delivered! +" + pay + " pts (route " + base + " + time bonus " + timeBonus + (mult > 1 ? ", combo " + fmtMult(mult) : "") + ") — streak " + S.deliver.streak + ", next run pays " + fmtMult(delivMult()), "good");
+  toast("🏁 Delivered! +" + pay + " pts (route " + base + " + time bonus " + timeBonus + (mult > 1 ? ", combo " + fmtMult(mult) : "") + ")" + (nightBonus > 0 ? " + night bonus " + nightBonus + " pts" : "") + " — streak " + S.deliver.streak + ", next run pays " + fmtMult(delivMult()), "good");
   updateDelivChip();
 }
 function failDelivery() {
@@ -1546,6 +1554,53 @@ SPECIES.forEach(function (sp) {
 var player = { x: TILE * 2, y: TILE * 2, r: 14, speed: 235, dir: 1, walk: 0, faceX: 1, faceY: 0, hurtT: 0 };
 var wilds = [];
 var spawnTimer = 0, goldTimer = 20;
+
+/* ---------------- Day / night cycle ----------------
+   One full cycle = DAY_LENGTH seconds. The game always starts in the
+   morning (dayClock 0.10) and the clock keeps turning — day, dusk
+   (golden hour), night, dawn, then day again. */
+var DAY_LENGTH = 600;
+var dayClock = 0.10;
+var curPhase = "";
+function phaseInfo() {
+  if (dayClock < 0.45) return { id: "day", label: "Day", icon: "☀️" };
+  if (dayClock < 0.58) return { id: "dusk", label: "Golden hour", icon: "🌇" };
+  if (dayClock < 0.88) return { id: "night", label: "Night", icon: "🌙" };
+  return { id: "dawn", label: "Dawn", icon: "🌅" };
+}
+function isNight() { return phaseInfo().id === "night"; }
+function isGoldenHour() { return phaseInfo().id === "dusk"; }
+/* Piecewise-linear tint keyframes over dayClock: [t, darkness, warmth] */
+var TINT_KEYS = [
+  [0.00, 0, 0], [0.45, 0.05, 0.15], [0.52, 0.30, 0.55], [0.58, 0.50, 0.10],
+  [0.85, 0.50, 0], [0.94, 0.22, 0.25], [1.00, 0, 0]
+];
+function dayTint() {
+  var t = dayClock;
+  for (var i = 0; i < TINT_KEYS.length - 1; i++) {
+    var a = TINT_KEYS[i], b = TINT_KEYS[i + 1];
+    if (t >= a[0] && t <= b[0]) {
+      var f = b[0] === a[0] ? 0 : (t - a[0]) / (b[0] - a[0]);
+      return { dark: a[1] + (b[1] - a[1]) * f, warm: a[2] + (b[2] - a[2]) * f };
+    }
+  }
+  return { dark: 0, warm: 0 };
+}
+/* Species spawn weights shift with the phase; every species keeps a
+   weight above zero, so all five can appear at any time of day. */
+function pickSpecies() {
+  var w = { Fire: 10, Grass: 10, Water: 10, Steel: 10, Psychic: 10 };
+  var ph = phaseInfo().id;
+  if (ph === "day") { w.Fire = 16; w.Grass = 16; w.Psychic = 6; w.Steel = 6; }
+  else if (ph === "night") { w.Psychic = 16; w.Steel = 16; w.Fire = 6; w.Grass = 6; }
+  else if (ph === "dusk") { w.Fire = 14; }
+  else if (ph === "dawn") { w.Grass = 14; }
+  var total = 0, i;
+  for (i = 0; i < SPECIES.length; i++) total += w[SPECIES[i].element];
+  var roll = Math.random() * total;
+  for (i = 0; i < SPECIES.length; i++) { roll -= w[SPECIES[i].element]; if (roll <= 0) return SPECIES[i]; }
+  return SPECIES[0];
+}
 function freeSpot() {
   for (var tries = 0; tries < 40; tries++) {
     var x = 60 + Math.random() * (WORLD - 120), y = 60 + Math.random() * (WORLD - 120);
@@ -1562,7 +1617,7 @@ function rollRarity() {
 }
 function spawnWild(golden) {
   var spot = freeSpot();
-  var sp = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+  var sp = pickSpecies();
   wilds.push({
     sp: sp, rarity: golden ? "golden" : rollRarity(), golden: !!golden,
     x: spot.x, y: spot.y, tx: spot.x, ty: spot.y, pause: Math.random() * 2,
@@ -1849,10 +1904,16 @@ function renderEarn() {
   });
   ci.appendChild(ciBtn); el.appendChild(ci);
 
+  /* daily streak bonus (automatic — separate from the check-in above) */
+  var dsr = document.createElement("div"); dsr.className = "row";
+  dsr.innerHTML = "<div class='grow'><div class='name'>🔥 Daily streak — " + S.dayStreak.count + " day(s)</div>" +
+    "<div class='desc'>Open the game on a new day to grow your streak: +10 pts × streak day, up to +70 on day 7 and beyond. Miss a day and the streak restarts at 1. Today's streak bonus lands in your points automatically.</div></div>";
+  el.appendChild(dsr);
+
   /* V4: City Run delivery stats */
   var dr = document.createElement("div"); dr.className = "row";
   dr.innerHTML = "<div class='grow'><div class='name'>📦 City Run deliveries</div>" +
-    "<div class='desc'>Grab a 📦 package anywhere in the city and race it to the 🏁 before the timer dies. On foot the clock is generous; in a car or on a bike it's tighter — but you'll actually make it. On-time streaks multiply pay up to ×3; a timeout resets the combo.</div>" +
+    "<div class='desc'>Grab a 📦 package anywhere in the city and race it to the 🏁 before the timer dies. On foot the clock is generous; in a car or on a bike it's tighter — but you'll actually make it. On-time streaks multiply pay up to ×3; a timeout resets the combo. Deliveries completed at night pay +25%.</div>" +
     "<div class='desc' style='margin-top:5px'>Completed: <b style='color:var(--ink)'>" + S.deliver.done + "</b> · Best combo: <b style='color:var(--ink)'>" + fmtMult(S.deliver.best) + "</b> · Earned from deliveries: <b style='color:var(--gold)'>⭐ " + fmt(S.deliver.earned) + "</b></div></div>";
   el.appendChild(dr);
 
@@ -1880,14 +1941,15 @@ function renderEarn() {
   var ways = [
     ["🎯", "Catch sprites", "Common +20 · Uncommon +45 · Rare +100 pts, plus shards every catch."],
     ["🔥", "Catch-streak combo", "Catch sprites back-to-back within 45s — multiplier grows to ×3."],
-    ["✨", "Golden sprite", "A rare golden sprite appears now and then — worth +500 pts and 30 shards. It flees after 40s!"],
+    ["✨", "Golden sprite", "A rare golden sprite appears now and then — worth +500 pts and 30 shards. It flees after 40s! Golden hour (dusk) is its favorite time: golden sprites appear far more often then."],
     ["🗺️", "Explore districts", "+75 pts the first time you enter each of the 9 city districts (" + S.districts.length + "/9 found)."],
     ["📅", "Daily check-in", "50 → 500 pts across a 7-day streak."],
+    ["🔥", "Daily streak", "Open the game every day: +10 pts × your streak day, up to +70."],
     ["📋", "Daily missions", "Four fresh missions every day, up to +470 pts total."],
     ["🚗", "Drive & ride", "Parked cars and motorbikes wait at the roadside — walk up and press E / ENTER. Traffic cars brake when you step in front of them, so you can hop into a moving one too. Cars are fast and smash lamps; bikes slip between buildings. Run into a sprite while driving to start its battle stunned — but chaos raises your wanted stars."],
     ["🥊", "Win arena duels", "Rival hunters (red markers) roam the city — walk into one to duel in a side-view arena: best of 3 rounds with punches, kicks, blocks and orb shots. Land the finisher for a +50 pt bonus. Win +60–120 pts, bonus shards, and dropped loot. Lose and you wake up at the park."],
     ["🔫", "Orb Blaster (Shop gear)", "Buy the blaster in the Shop, then SHOOT with J. Shots weaken wild sprites before a catch — but ammo is your catch orbs, and firing in the open attracts guard drones."],
-    ["📦", "City Run deliveries", "Pick up a package and beat the clock to the 🏁: route pay + time bonus, with on-time streaks multiplying up to ×3. Your delivery record lives in the Earn panel."]
+    ["📦", "City Run deliveries", "Pick up a package and beat the clock to the 🏁: route pay + time bonus, with on-time streaks multiplying up to ×3. Deliveries completed at night pay +25%. Your delivery record lives in the Earn panel."]
   ];
   ways.forEach(function (w) {
     var row = document.createElement("div"); row.className = "row";
@@ -1943,6 +2005,18 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 function update(dt, now) {
+  /* day / night clock — always turning, in battle and panels too */
+  dayClock = (dayClock + dt / DAY_LENGTH) % 1;
+  var phNow = phaseInfo();
+  if (phNow.id !== curPhase) {
+    curPhase = phNow.id;
+    $("phaseTag").textContent = phNow.icon + " " + phNow.label;
+    $("goldTag").style.display = phNow.id === "dusk" ? "" : "none";
+    if (phNow.id === "dusk") {
+      toast("🌇 Golden hour! Golden sprites are appearing much more often…");
+      goldTimer = Math.min(goldTimer, 3);
+    }
+  }
   /* energy regen */
   S.energy = Math.min(100, S.energy + 3 * dt);
   player.hurtT = Math.max(0, (player.hurtT || 0) - dt);
@@ -2039,10 +2113,11 @@ function update(dt, now) {
   if (spawnTimer <= 0) { if (wilds.filter(function (w) { return !w.golden; }).length < maxWilds()) spawnWild(false); spawnTimer = interval; }
   goldTimer -= dt;
   if (goldTimer <= 0) {
-    if (!wilds.some(function (w) { return w.golden; }) && Math.random() < 0.6) {
+    var goldCh = isGoldenHour() ? 0.95 : 0.6;
+    if (!wilds.some(function (w) { return w.golden; }) && Math.random() < goldCh) {
       spawnWild(true); toast("✨ A GOLDEN sprite appeared somewhere in the city! +500 pts if caught", "good");
     }
-    goldTimer = 45;
+    goldTimer = isGoldenHour() ? 12 : 45;
   }
   /* wilds wander + encounter */
   for (var i = wilds.length - 1; i >= 0; i--) {
@@ -2222,6 +2297,23 @@ function render(now) {
   });
   /* guard drones */
   drones.forEach(function (d) { drawDrone(d, camX, camY, now); });
+  /* day / night tint — drawn over the whole world so the city shifts
+     with the clock, capped at 0.50 darkness so play stays readable */
+  var tint = dayTint();
+  if (tint.dark > 0.01) { ctx.fillStyle = "rgba(10,14,40," + tint.dark + ")"; ctx.fillRect(0, 0, vw, vh); }
+  if (tint.warm > 0.01) { ctx.fillStyle = "rgba(255,130,40," + (tint.warm * 0.35) + ")"; ctx.fillRect(0, 0, vw, vh); }
+  if (tint.dark > 0.25) {
+    lamps.forEach(function (L) {
+      if (L.smashed) return;
+      var lx = L.x - camX, ly = L.y - camY;
+      if (lx < -60 || ly < -60 || lx > vw + 60 || ly > vh + 60) return;
+      var g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 55);
+      g.addColorStop(0, "rgba(255,214,120,0.30)");
+      g.addColorStop(1, "rgba(255,214,120,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(lx - 55, ly - 55, 110, 110);
+    });
+  }
   renderMinimap(now);
 }
 function drawCar(x, y, ang, color, brake) {
@@ -2424,6 +2516,20 @@ function renderMinimap(now) {
 /* ---------------- Boot ---------------- */
 for (var s0 = 0; s0 < 5; s0++) spawnWild(false);
 seedBikes(); seedParkedCars(); seedRivals();
+/* Daily streak bonus — automatic, and separate from the daily check-in:
+   opening the game on a new day grows the streak; a missed day restarts it. */
+(function () {
+  var today = todayStr();
+  if (S.dayStreak.lastDay !== today) {
+    var yest = new Date(); yest.setDate(yest.getDate() - 1);
+    S.dayStreak.count = S.dayStreak.lastDay === todayStr(yest) ? S.dayStreak.count + 1 : 1;
+    S.dayStreak.lastDay = today;
+    var streakBonus = 10 * Math.min(S.dayStreak.count, 7);
+    awardPoints(streakBonus);
+    save(); refreshHUD();
+    toast("🔥 Day streak " + S.dayStreak.count + " — daily streak bonus +" + streakBonus + " pts", "good");
+  }
+})();
 if (S.inVehicle === "bike") {
   var rb = { x: player.x + 34, y: player.y, ang: 0, taken: false, parked: true };
   bikes.push(rb); enterVehicle({ kind: "bike", obj: rb });
