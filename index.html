@@ -768,17 +768,70 @@ var CITY_DAY = {
   curb: "#848b96", stopLine: "rgba(255,255,255,.85)", manhole: "rgba(70,76,86,.55)", patch: "rgba(50,55,64,.12)",
   speckA: "rgba(70,76,86,.16)", speckB: "rgba(255,255,255,.20)"
 };
-var cityCanvas = document.createElement("canvas"); cityCanvas.width = WORLD; cityCanvas.height = WORLD;
-var cityCanvasDay = document.createElement("canvas"); cityCanvasDay.width = WORLD; cityCanvasDay.height = WORLD;
+var CITY_SCALE = 0.5;
+var cityCanvas = document.createElement("canvas"); cityCanvas.width = WORLD * CITY_SCALE; cityCanvas.height = WORLD * CITY_SCALE;
+var cityCanvasDay = document.createElement("canvas"); cityCanvasDay.width = WORLD * CITY_SCALE; cityCanvasDay.height = WORLD * CITY_SCALE;
 
+function canvasPaintedOk(target) {
+  try {
+    var c = target.getContext("2d");
+    if (!c) return false;
+    var d = c.getImageData(20, 20, 1, 1).data;
+    return d[3] === 255;
+  } catch (e) { return false; }
+}
+function paintCityFallback(target, pal) {
+  var c = target.getContext("2d");
+  if (!c) return;
+  c.setTransform(CITY_SCALE, 0, 0, CITY_SCALE, 0, 0);
+  c.fillStyle = pal.ground; c.fillRect(0, 0, WORLD, WORLD);
+  for (var key in parkTiles) {
+    var p = key.split(","), px = +p[0] * TILE, py = +p[1] * TILE;
+    c.fillStyle = pal.parkOuter; c.fillRect(px, py, TILE, TILE);
+    c.fillStyle = pal.parkInner; c.fillRect(px + 26, py + 26, TILE - 52, TILE - 52);
+  }
+  c.fillStyle = pal.road;
+  for (var i = 0; i <= WORLD / TILE; i++) {
+    var g = i * TILE;
+    c.fillRect(0, g - ROADW / 2, WORLD, ROADW);
+    c.fillRect(g - ROADW / 2, 0, ROADW, WORLD);
+  }
+  c.strokeStyle = pal.lane; c.lineWidth = 4; c.setLineDash([26, 22]);
+  for (var k = 0; k <= WORLD / TILE; k++) {
+    var gk = k * TILE;
+    c.beginPath(); c.moveTo(0, gk); c.lineTo(WORLD, gk); c.stroke();
+    c.beginPath(); c.moveTo(gk, 0); c.lineTo(gk, WORLD); c.stroke();
+  }
+  c.setLineDash([]);
+}
 function buildCity() {
-  paintCity(cityCanvas, CITY_NIGHT);
-  paintCity(cityCanvasDay, CITY_DAY);
+  try {
+    paintCity(cityCanvas, CITY_NIGHT);
+    paintCity(cityCanvasDay, CITY_DAY);
+    if (canvasPaintedOk(cityCanvas) && canvasPaintedOk(cityCanvasDay)) return;
+    CITY_SCALE = 0.25;
+    cityCanvas.width = WORLD * CITY_SCALE; cityCanvas.height = WORLD * CITY_SCALE;
+    cityCanvasDay.width = WORLD * CITY_SCALE; cityCanvasDay.height = WORLD * CITY_SCALE;
+    paintCity(cityCanvas, CITY_NIGHT);
+    paintCity(cityCanvasDay, CITY_DAY);
+    if (canvasPaintedOk(cityCanvas) && canvasPaintedOk(cityCanvasDay)) return;
+    paintCityFallback(cityCanvas, CITY_NIGHT);
+    paintCityFallback(cityCanvasDay, CITY_DAY);
+  } catch (e) {
+    try {
+      CITY_SCALE = 0.25;
+      cityCanvas.width = WORLD * 0.25; cityCanvas.height = WORLD * 0.25;
+      cityCanvasDay.width = WORLD * 0.25; cityCanvasDay.height = WORLD * 0.25;
+      paintCityFallback(cityCanvas, CITY_NIGHT);
+      paintCityFallback(cityCanvasDay, CITY_DAY);
+    } catch (e2) {}
+  }
 }
 function paintCity(target, pal) {
   rng = mulberry(1337);
   buildings = [];
   var c = target.getContext("2d");
+  c.setTransform(CITY_SCALE, 0, 0, CITY_SCALE, 0, 0);
   c.fillStyle = pal.ground; c.fillRect(0, 0, WORLD, WORLD);           /* block pavement base */
   /* park grass tiles */
   for (var key in parkTiles) {
@@ -2657,10 +2710,10 @@ function render(now) {
   if (WORLD < vh) camY = (WORLD - vh) / 2;
   var daylight = daylightFactor();
   ctx.fillStyle = mixRgb(11, 12, 16, 168, 192, 216, daylight); ctx.fillRect(0, 0, vw, vh);
-  ctx.drawImage(cityCanvas, -camX, -camY);
+  ctx.drawImage(cityCanvas, -camX, -camY, WORLD, WORLD);
   if (daylight > 0.01) {
     ctx.save(); ctx.globalAlpha = daylight;
-    ctx.drawImage(cityCanvasDay, -camX, -camY);
+    ctx.drawImage(cityCanvasDay, -camX, -camY, WORLD, WORLD);
     ctx.restore();
   }
   /* smashed lamp debris */
