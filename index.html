@@ -195,6 +195,11 @@
         border-radius: 10px; font-weight: 800; letter-spacing: .02em; cursor: not-allowed; opacity: .8;
       }
       .withdrawBtn:disabled { opacity: .65; cursor: not-allowed; }
+      .lrow { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; background: var(--panel2); }
+      .lrow .rk { font-weight: 800; color: var(--muted); width: 36px; flex: none; }
+      .lrow .nm { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lrow .pt { color: var(--gold); font-weight: 800; white-space: nowrap; }
+      .lrow.me { border-color: var(--gold-d); background: #262214; }
       .aboutText { color: #d6dae3; font-size: 14px; line-height: 1.65; margin: 0 0 4px; }
       .aboutList { margin: 0; padding: 0; list-style: none; }
       .aboutList li {
@@ -371,6 +376,7 @@
         <button class="hbtn gold" id="btnShop" type="button">Shop</button>
         <button class="hbtn" id="btnDex" type="button">Sprites</button>
         <button class="hbtn" id="btnAbout" type="button">About</button>
+        <button class="hbtn" id="btnBoard" type="button">🏆 Leaderboard</button>
         <button class="hbtn" id="btnInstall" type="button" style="display:none">📲 App</button>
       </div>
     </div>
@@ -417,7 +423,20 @@
           <div><h2>Earn Points</h2><p class="sub">Every way to stack points &amp; shards in Sprite Hunt.</p></div>
           <button class="x" data-close type="button" aria-label="Close">✕</button>
         </div>
-        <div class="secttl" style="margin-top:0">Convert to Sprite City</div>
+        <div class="secttl" style="margin-top:0">Account</div>
+        <div class="row" style="display:block" id="accountBox">
+          <div id="acctSignedOut">
+            <div class="name">Sign in to save your points</div>
+            <div class="desc" style="margin-top:4px;line-height:1.55">Sign in with Google to sync your points to your account, join the leaderboard, and claim your playtest points.</div>
+            <button class="claim" type="button" id="btnGoogleSignIn" disabled style="margin-top:10px;min-height:2.75rem;padding:0 18px">Accounts open Nov 23</button>
+          </div>
+          <div id="acctSignedIn" style="display:none">
+            <div class="name">👤 <span id="acctName">Hunter</span><span id="acctBadge" style="display:none;color:var(--gold)"> · 🏅 OG Hunter</span></div>
+            <div class="desc" id="acctSyncNote" style="margin-top:4px;line-height:1.55">Your points sync to your account automatically.</div>
+            <button class="claim" type="button" id="btnSignOut" style="margin-top:10px;min-height:2.75rem;padding:0 18px;background:var(--panel2);color:var(--ink);border-color:var(--line)">Sign out</button>
+          </div>
+        </div>
+        <div class="secttl">Convert to Sprite City</div>
         <div class="row" style="display:block">
           <div class="name">Your playtest balance</div>
           <div class="convertNums">
@@ -425,9 +444,15 @@
             <div class="cnum"><small>Sprite City equivalent</small><b style="color:var(--gold)" id="convertSprt">0 Sprite City tokens</b></div>
           </div>
           <div class="convertRate">Rate: 100 Points = 1 Sprite City token</div>
-          <div class="desc" style="margin-top:8px;line-height:1.55">Points you earn right now are <b style="color:var(--ink)">playtest points</b>. When withdrawals open, you&rsquo;ll sign in with Google and claim your playtest points <b style="color:var(--ink)">once</b> &mdash; up to <b style="color:var(--ink)">5,000 points per account</b> will be recognized. The claim window is <b style="color:var(--ink)">7 days</b> from the day withdrawals open.</div>
+          <div class="desc" style="margin-top:8px;line-height:1.55">Points you earn right now are <b style="color:var(--ink)">playtest points</b>. Sign in with Google above and claim your playtest points <b style="color:var(--ink)">once</b> &mdash; up to <b style="color:var(--ink)">5,000 points per account</b> will be recognized. The claim window is <b style="color:var(--ink)">7 days</b> and closes at the Sprite City token launch on <b style="color:var(--ink)">Nov 30</b>.</div>
           <div class="desc" style="margin-top:8px;line-height:1.55"><b style="color:var(--gold)">Playtest bonus &mdash; 20&times; rate:</b> playtest claims convert at <b style="color:var(--ink)">5 Points = 1 Sprite City token</b>, so a full 5,000-point claim is worth up to <b style="color:var(--ink)">1,000 Sprite City tokens</b> per account. Playtest claimants also earn the <b style="color:var(--ink)">OG Hunter</b> badge and a <b style="color:var(--ink)">1.5&times; points multiplier</b> for all of Season 1.</div>
+          <div id="claimBox" style="margin-top:10px">
+            <div class="desc" id="claimHint" style="line-height:1.55">Sign in with Google to claim your playtest points &mdash; accounts open Nov 23.</div>
+            <button class="claim" type="button" id="btnClaimPlaytest" style="display:none;margin-top:8px;min-height:2.75rem;padding:0 18px">Claim playtest points</button>
+            <div id="claimResult" style="display:none;margin-top:8px"></div>
+          </div>
           <button class="withdrawBtn" type="button" disabled>Withdraw &mdash; opens at Sprite City token launch</button>
+          <div class="desc" style="margin-top:8px;line-height:1.55">We will <b style="color:var(--ink)">never ask you to approve a transaction or token allowance</b> &mdash; receiving rewards never needs an approval. And you may use a <b style="color:var(--ink)">fresh empty wallet</b> just for receiving rewards.</div>
         </div>
         <div id="earnBody"></div>
       </div>
@@ -484,6 +509,18 @@
 
         <a class="wpBtn" href="https://spritecity.world/whitepaper.html" target="_blank" rel="noopener">📄 Read the full whitepaper</a>
         <a class="xBtn" href="https://x.com/SpriteCityHQ" target="_blank" rel="noopener">𝕏 Official X — @SpriteCityHQ</a>
+      </div>
+    </div>
+
+    <!-- Leaderboard panel -->
+    <div class="scrim" id="boardPanel">
+      <div class="sheet">
+        <div class="sheetHead">
+          <div><h2>Leaderboard</h2><p class="sub">Top hunters in Sprite City, ranked by points.</p></div>
+          <button class="x" data-close type="button" aria-label="Close">✕</button>
+        </div>
+        <div id="boardHint" class="desc" style="margin-bottom:10px"></div>
+        <div id="boardList"><div class="desc">Loading&hellip;</div></div>
       </div>
     </div>
 
@@ -2292,13 +2329,14 @@ $("btnShoot").addEventListener("click", doShoot);
 
 /* ---------------- Panels ---------------- */
 function openPanel(id) {
-  ["dexPanel", "earnPanel", "shopPanel", "aboutPanel"].forEach(function (p) { $(p).classList.toggle("open", p === id); });
+  ["dexPanel", "earnPanel", "shopPanel", "aboutPanel", "boardPanel"].forEach(function (p) { $(p).classList.toggle("open", p === id); });
   if (id === "dexPanel") renderDex();
   if (id === "earnPanel") renderEarn();
   if (id === "shopPanel") renderShop();
+  if (id === "boardPanel" && window.__scBoard) window.__scBoard.open();
   refreshHUD();
 }
-function closePanels() { ["dexPanel", "earnPanel", "shopPanel", "aboutPanel"].forEach(function (p) { $(p).classList.remove("open"); }); }
+function closePanels() { ["dexPanel", "earnPanel", "shopPanel", "aboutPanel", "boardPanel"].forEach(function (p) { $(p).classList.remove("open"); }); }
 Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closePanels); });
 Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function (s) {
   s.addEventListener("click", function (e) { if (e.target === s && s.id !== "battle") closePanels(); });
@@ -2307,6 +2345,7 @@ $("btnDex").addEventListener("click", function () { openPanel("dexPanel"); });
 $("btnEarn").addEventListener("click", function () { openPanel("earnPanel"); });
 $("btnShop").addEventListener("click", function () { openPanel("shopPanel"); });
 $("btnAbout").addEventListener("click", function () { openPanel("aboutPanel"); });
+$("btnBoard").addEventListener("click", function () { openPanel("boardPanel"); });
 
 function thumbCanvas(sp, golden, caught) {
   var wrap = document.createElement("div"); wrap.className = "thumb";
@@ -3083,6 +3122,212 @@ setTimeout(function () {
     }
   });
 })();
+</script>
+<script>
+/* Default leaderboard hook — the Firebase module below replaces it
+   with the live version once it loads. If the module cannot load at
+   all (no network), the panel still explains itself. */
+window.__scBoard = { open: function () {
+  var h = document.getElementById("boardHint"); if (h) h.textContent = "";
+  var l = document.getElementById("boardList");
+  if (l) l.innerHTML = "<div class='desc'>The leaderboard opens when accounts open on Nov 23.</div>";
+} };
+</script>
+<script type="module">
+/* ============================================================
+   Sprite City accounts — Firebase Auth (Google) + Firestore.
+   Syncs points to users/{uid}, mirrors the public leaderboard,
+   and runs the one-time playtest claim from the Convert panel.
+   If the config below is still placeholder (or the SDK cannot
+   load, e.g. no network), this module simply never activates:
+   the account UI keeps its "Accounts open Nov 23" state and the
+   game runs fully local, exactly as before.
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* === FIREBASE CONFIG — paste this project's web app config here ===
+   Firebase console → Project settings → "Your apps" → Web app.
+   Until these REPLACE_ME values are filled in, accounts stay off. */
+const FIREBASE_CONFIG = { apiKey: "AIzaSyBsa5fe3CNgDyk77tWNLxpVcuTF4cKf-Lo", authDomain: "sprite-city-5864d.firebaseapp.com", projectId: "sprite-city-5864d", storageBucket: "sprite-city-5864d.firebasestorage.app", messagingSenderId: "513788222671", appId: "1:513788222671:web:cbab272592237048436bba" };
+
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtN = (n) => (typeof window.fmt === "function" ? window.fmt(n) : Number(n || 0).toLocaleString("en-US"));
+const localPoints = () => (window.S && typeof window.S.points === "number" ? window.S.points : 0);
+const say = (msg, cls) => { if (typeof window.toast === "function") window.toast(msg, cls); };
+
+const CONFIGURED = FIREBASE_CONFIG.apiKey !== "REPLACE_ME" && FIREBASE_CONFIG.projectId !== "REPLACE_ME" && FIREBASE_CONFIG.appId !== "REPLACE_ME";
+
+/* Leaderboard hook used by the game's panel wiring. The default
+   implementation covers the not-yet-configured state; initAccounts
+   swaps in the live Firestore version. */
+let boardOpenImpl = function () {
+  el("boardHint").textContent = "";
+  el("boardList").innerHTML = "<div class='desc'>The leaderboard opens when accounts open on Nov 23.</div>";
+};
+window.__scBoard = { open: function () { boardOpenImpl(); } };
+
+if (CONFIGURED) {
+  try { initAccounts(); } catch (e) { /* stay in the graceful signed-out state */ }
+}
+
+function initAccounts() {
+  const app = initializeApp(FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let user = null;      /* Firebase Auth user */
+  let profile = null;   /* users/{uid} document data */
+  let syncTimer = null;
+  let boardUnsub = null;
+
+  const signInBtn = el("btnGoogleSignIn");
+  signInBtn.disabled = false;
+  signInBtn.textContent = "Sign in with Google";
+  signInBtn.addEventListener("click", () => {
+    signInWithPopup(auth, new GoogleAuthProvider()).catch((err) => {
+      el("claimHint").textContent = "Sign-in didn't complete (" + (err && err.code ? err.code : "error") + "). Please try again.";
+    });
+  });
+  el("btnSignOut").addEventListener("click", () => { signOut(auth).catch(() => {}); });
+  el("btnClaimPlaytest").addEventListener("click", claimPlaytest);
+  el("btnEarn").addEventListener("click", () => setTimeout(renderClaim, 60));
+
+  onAuthStateChanged(auth, async (u) => {
+    user = u || null;
+    if (!user) {
+      profile = null;
+      stopSync();
+      el("acctSignedOut").style.display = "";
+      el("acctSignedIn").style.display = "none";
+      renderClaim();
+      return;
+    }
+    el("acctSignedOut").style.display = "none";
+    el("acctSignedIn").style.display = "";
+    el("acctName").textContent = user.displayName || "Hunter";
+    try {
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        profile = snap.data();
+      } else {
+        profile = {
+          displayName: user.displayName || "Hunter",
+          email: user.email || "",
+          createdAt: serverTimestamp(),
+          points: localPoints(),
+          playtestClaimed: false,
+          playtestTokens: 0,
+          ogBadge: false,
+          multiplier: 1
+        };
+        await setDoc(ref, profile);
+        await setDoc(doc(db, "leaderboard", user.uid), { name: profile.displayName, points: profile.points });
+      }
+    } catch (e) {
+      profile = profile || { points: 0, playtestClaimed: false, playtestTokens: 0, ogBadge: false, multiplier: 1 };
+    }
+    el("acctBadge").style.display = profile.ogBadge ? "" : "none";
+    renderClaim();
+    syncPoints();
+    startSync();
+  });
+
+  function startSync() {
+    stopSync();
+    syncTimer = setInterval(() => { syncPoints(); renderClaim(); }, 15000);
+    document.addEventListener("visibilitychange", onVis);
+  }
+  function stopSync() {
+    if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+    document.removeEventListener("visibilitychange", onVis);
+  }
+  function onVis() { if (document.visibilityState === "hidden") syncPoints(); }
+
+  /* Server total only ever moves up: max(server, local). */
+  async function syncPoints() {
+    if (!user || !profile) return;
+    const total = Math.max(profile.points || 0, localPoints());
+    if (total === (profile.points || 0)) return;
+    profile.points = total;
+    try {
+      await updateDoc(doc(db, "users", user.uid), { points: total });
+      await setDoc(doc(db, "leaderboard", user.uid), { name: user.displayName || profile.displayName || "Hunter", points: total }, { merge: true });
+    } catch (e) { /* offline — the next tick retries */ }
+  }
+
+  function renderClaim() {
+    const hint = el("claimHint"), btn = el("btnClaimPlaytest"), res = el("claimResult");
+    if (!user) {
+      hint.textContent = "Sign in with Google above to claim your playtest points.";
+      btn.style.display = "none"; res.style.display = "none";
+      return;
+    }
+    if (!profile) { hint.textContent = "Loading your account…"; btn.style.display = "none"; res.style.display = "none"; return; }
+    if (profile.playtestClaimed) {
+      hint.textContent = "Playtest points claimed ✓";
+      btn.style.display = "none";
+      res.style.display = "";
+      res.innerHTML = "<div class='desc' style='line-height:1.55'>🏅 <b style='color:var(--gold)'>OG Hunter</b> — <b style='color:var(--ink)'>" + fmtN(profile.playtestTokens || 0) + " Sprite City tokens</b> locked from your playtest claim, plus your <b style='color:var(--ink)'>1.5× points multiplier</b> recorded for Season 1. Locked tokens unlock for withdrawal at the Sprite City token launch.</div>";
+      return;
+    }
+    const recognized = Math.min(localPoints(), 5000);
+    const tokens = Math.floor(recognized / 5);
+    hint.textContent = "Your playtest claim: " + fmtN(recognized) + " of your " + fmtN(localPoints()) + " points recognized (max 5,000) → " + fmtN(tokens) + " Sprite City tokens at the bonus rate of 5 points = 1 token.";
+    res.style.display = "none";
+    btn.style.display = "";
+    btn.textContent = "Claim playtest points → " + fmtN(tokens) + " Sprite City tokens";
+  }
+
+  async function claimPlaytest() {
+    if (!user || !profile || profile.playtestClaimed) return;
+    const recognized = Math.min(localPoints(), 5000);
+    const tokens = Math.floor(recognized / 5);
+    const btn = el("btnClaimPlaytest");
+    btn.disabled = true;
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        playtestClaimed: true,
+        playtestTokens: tokens,
+        ogBadge: true,
+        multiplier: 1.5
+      });
+      profile.playtestClaimed = true;
+      profile.playtestTokens = tokens;
+      profile.ogBadge = true;
+      profile.multiplier = 1.5;
+      el("acctBadge").style.display = "";
+      say("🏅 Playtest claimed: " + fmtN(tokens) + " Sprite City tokens locked", "good");
+    } catch (e) {
+      el("claimHint").textContent = "Claim didn't go through — check your connection and try again.";
+    }
+    btn.disabled = false;
+    renderClaim();
+  }
+
+  /* Leaderboard: live top 50, public read, own row highlighted. */
+  boardOpenImpl = function () {
+    el("boardHint").textContent = user ? "" : "Sign in with Google (in the Earn panel) to join the leaderboard — your points appear here once you do.";
+    if (boardUnsub) return;
+    const q = query(collection(db, "leaderboard"), orderBy("points", "desc"), limit(50));
+    boardUnsub = onSnapshot(q, (snap) => {
+      const list = el("boardList");
+      if (snap.empty) { list.innerHTML = "<div class='desc'>No hunters on the board yet — be the first.</div>"; return; }
+      let html = "", rank = 0;
+      snap.forEach((d) => {
+        rank++;
+        const data = d.data() || {};
+        const mine = user && d.id === user.uid;
+        html += "<div class='lrow" + (mine ? " me" : "") + "'><span class='rk'>#" + rank + "</span><span class='nm'>" + esc(data.name || "Hunter") + (mine ? " (you)" : "") + "</span><span class='pt'>⭐ " + fmtN(data.points || 0) + "</span></div>";
+      });
+      list.innerHTML = html;
+    }, () => {
+      el("boardList").innerHTML = "<div class='desc'>Couldn't load the leaderboard — check your connection and reopen this panel.</div>";
+    });
+  };
+}
 </script>
   </body>
 </html>
