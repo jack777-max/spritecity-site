@@ -5,7 +5,14 @@
     <meta name="description" content="Sprite City — a top-down city game on Robinhood Chain. Hunt stock-type sprites, duel rival hunters, and run deliveries across the city. Playtest live." />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="color-scheme" content="dark" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0b0c10" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Sprite City" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Sprite Hunt</title>
     <!-- Telegram Mini App SDK is loaded lazily by the game script (non-blocking):
          a slow or unreachable telegram.org must never hold the page blank. -->
@@ -364,6 +371,7 @@
         <button class="hbtn gold" id="btnShop" type="button">Shop</button>
         <button class="hbtn" id="btnDex" type="button">Sprites</button>
         <button class="hbtn" id="btnAbout" type="button">About</button>
+        <button class="hbtn" id="btnInstall" type="button" style="display:none">📲 App</button>
       </div>
     </div>
 
@@ -3017,6 +3025,64 @@ setTimeout(function () {
   d.appendChild(b);
   document.body.appendChild(d);
 }, 5000);
+</script>
+<script>
+/* PWA: register the service worker and wire up the Install App button.
+   The button stays hidden unless the browser offers an install
+   (beforeinstallprompt) or the visitor is on iOS Safari, where installing
+   is a manual Share -> Add to Home Screen step. */
+(function () {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  }
+  var btn = document.getElementById("btnInstall");
+  if (!btn) return;
+  var deferredPrompt = null;
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      (window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches) ||
+      window.navigator.standalone === true;
+  }
+  if (isStandalone()) return;
+  function showHelp(html) {
+    var old = document.getElementById("installHelp");
+    if (old) old.remove();
+    var d = document.createElement("div");
+    d.id = "installHelp";
+    d.setAttribute("style", "position:fixed;inset:0;z-index:98;background:rgba(5,6,9,.72);display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit");
+    d.innerHTML = "<div style='background:#14161d;border:1px solid #2c303c;border-radius:14px;max-width:330px;width:100%;padding:20px;color:#f2f3f5;box-shadow:0 12px 40px rgba(0,0,0,.6)'>" +
+      "<div style='font-size:17px;font-weight:800;margin-bottom:8px'>📲 Install Sprite City</div>" +
+      "<div style='font-size:14px;line-height:1.55;color:#9aa1b1'>" + html + "</div>" +
+      "<button type='button' id='installHelpClose' style='margin-top:14px;width:100%;background:#ffd23f;color:#191204;border:1px solid #d9a514;border-radius:10px;font-weight:800;cursor:pointer'>Got it</button></div>";
+    document.body.appendChild(d);
+    d.addEventListener("click", function (e) { if (e.target === d) d.remove(); });
+    document.getElementById("installHelpClose").onclick = function () { d.remove(); };
+  }
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    btn.style.display = "";
+  });
+  window.addEventListener("appinstalled", function () {
+    deferredPrompt = null;
+    btn.style.display = "none";
+  });
+  var ua = window.navigator.userAgent || "";
+  var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (isIOS) btn.style.display = "";
+  btn.addEventListener("click", function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+    } else if (isIOS) {
+      showHelp("Tap the <b style='color:#f2f3f5'>Share</b> button in Safari, then choose <b style='color:#f2f3f5'>Add to Home Screen</b>. Sprite City will open fullscreen from your home screen, just like an app.");
+    } else {
+      showHelp("Open your browser menu and choose <b style='color:#f2f3f5'>Install app</b> or <b style='color:#f2f3f5'>Add to Home screen</b> to play Sprite City fullscreen from your home screen.");
+    }
+  });
+})();
 </script>
   </body>
 </html>
