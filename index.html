@@ -172,6 +172,14 @@
       }
       .buy:disabled, .claim:disabled { opacity: .38; cursor: default; }
       .claim { background: var(--green); color: #06230f; border: 1px solid #2f6b46; border-radius: 10px; padding: 0 16px; font-weight: 800; flex: none; }
+      .acctOr { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; margin-top: 14px; }
+      .acctOr::before, .acctOr::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+      .acctInput { width: 100%; box-sizing: border-box; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; font-size: 14px; margin-top: 8px; }
+      .acctInput:focus { outline: none; border-color: var(--gold-d); }
+      .acctBtns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+      .acctBtns .claim { min-height: 2.75rem; }
+      .acctBtns .ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
+      .acctErr { color: #ff8a8a; font-size: 12.5px; line-height: 1.5; margin-top: 8px; display: none; }
       .pbar { height: 8px; background: #262a35; border-radius: 99px; overflow: hidden; margin-top: 7px; }
       .pbar > div { height: 100%; background: var(--gold); }
       .thumb { width: 56px; height: 56px; flex: none; display: grid; place-items: center; background: #101319; border-radius: 10px; border: 1px solid var(--line); }
@@ -427,8 +435,16 @@
         <div class="row" style="display:block" id="accountBox">
           <div id="acctSignedOut">
             <div class="name">Sign in to save your points</div>
-            <div class="desc" style="margin-top:4px;line-height:1.55">Sign in with Google to sync your points to your account, join the leaderboard, and claim your playtest points.</div>
+            <div class="desc" style="margin-top:4px;line-height:1.55">Sign in with Google or email to sync your points to your account, join the leaderboard, and claim your playtest points.</div>
             <button class="claim" type="button" id="btnGoogleSignIn" disabled style="margin-top:10px;min-height:2.75rem;padding:0 18px">Accounts open Nov 23</button>
+            <div class="acctOr">or use email</div>
+            <input class="acctInput" type="email" id="acctEmail" placeholder="Email address" autocomplete="email">
+            <input class="acctInput" type="password" id="acctPassword" placeholder="Password (min 6 characters)" autocomplete="current-password">
+            <div class="acctErr" id="acctEmailMsg"></div>
+            <div class="acctBtns">
+              <button class="claim" type="button" id="btnEmailSignIn">Sign in with email</button>
+              <button class="claim ghost" type="button" id="btnEmailSignUp">Create account</button>
+            </div>
           </div>
           <div id="acctSignedIn" style="display:none">
             <div class="name">👤 <span id="acctName">Hunter</span><span id="acctBadge" style="display:none;color:var(--gold)"> · 🏅 OG Hunter</span></div>
@@ -2121,6 +2137,7 @@ function maxWilds() { return Date.now() < S.boosts.lureUntil ? 10 : 6; }
 /* ---------------- Input ---------------- */
 var keys = {};
 addEventListener("keydown", function (e) {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].indexOf(e.key) >= 0) e.preventDefault();
   keys[e.key.toLowerCase()] = true;
   if (battle && (e.key === " " || e.key === "Enter")) doThrow();
@@ -2135,7 +2152,10 @@ addEventListener("keydown", function (e) {
     if (kk === "j") doShoot();
   }
 });
-addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+addEventListener("keyup", function (e) {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+  keys[e.key.toLowerCase()] = false;
+});
 var joy = { active: false, dx: 0, dy: 0, id: null };
 var stickEl = document.getElementById("stick"), knobEl = document.getElementById("knob");
 if ("ontouchstart" in window || navigator.maxTouchPoints > 0) document.body.classList.add("touch");
@@ -3144,7 +3164,7 @@ window.__scBoard = { open: function () {
    game runs fully local, exactly as before.
    ============================================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* === FIREBASE CONFIG — paste this project's web app config here ===
@@ -3190,6 +3210,58 @@ function initAccounts() {
       el("claimHint").textContent = "Sign-in didn't complete (" + (err && err.code ? err.code : "error") + "). Please try again.";
     });
   });
+
+  /* Email/password sign-in — same auth state flow as Google:
+     onAuthStateChanged below handles the profile doc, claim,
+     points sync and leaderboard mirror for every provider. */
+  const emailMsg = el("acctEmailMsg");
+  function showEmailError(err) {
+    const code = err && err.code ? err.code : "";
+    let msg;
+    switch (code) {
+      case "auth/operation-not-allowed":
+        msg = "Email login is being switched on — try Google for now."; break;
+      case "auth/invalid-email":
+        msg = "That email address doesn't look valid — check it and try again."; break;
+      case "auth/email-already-in-use":
+        msg = "That email already has an account — use “Sign in with email” instead."; break;
+      case "auth/weak-password":
+        msg = "Password is too weak — use at least 6 characters."; break;
+      case "auth/user-not-found":
+      case "auth/wrong-password":
+      case "auth/invalid-credential":
+        msg = "Wrong email or password — check both and try again."; break;
+      case "auth/too-many-requests":
+        msg = "Too many tries — wait a minute and try again."; break;
+      case "auth/network-request-failed":
+        msg = "Network hiccup — check your connection and try again."; break;
+      case "auth/user-disabled":
+        msg = "This account has been disabled — contact support."; break;
+      default:
+        msg = "That didn't work (" + (code || "error") + ") — please try again.";
+    }
+    emailMsg.textContent = msg;
+    emailMsg.style.display = "";
+  }
+  function emailBusy(busy) {
+    el("btnEmailSignIn").disabled = busy;
+    el("btnEmailSignUp").disabled = busy;
+  }
+  function runEmailAuth(fn) {
+    const email = el("acctEmail").value.trim();
+    const pw = el("acctPassword").value;
+    emailMsg.style.display = "none";
+    if (!email || !pw) {
+      emailMsg.textContent = "Enter your email and password first.";
+      emailMsg.style.display = "";
+      return;
+    }
+    emailBusy(true);
+    fn(auth, email, pw).catch(showEmailError).finally(() => emailBusy(false));
+  }
+  el("btnEmailSignIn").addEventListener("click", () => runEmailAuth(signInWithEmailAndPassword));
+  el("btnEmailSignUp").addEventListener("click", () => runEmailAuth(createUserWithEmailAndPassword));
+  el("acctPassword").addEventListener("keydown", (e) => { if (e.key === "Enter") el("btnEmailSignIn").click(); });
   el("btnSignOut").addEventListener("click", () => { signOut(auth).catch(() => {}); });
   el("btnClaimPlaytest").addEventListener("click", claimPlaytest);
   el("btnEarn").addEventListener("click", () => setTimeout(renderClaim, 60));
@@ -3206,7 +3278,7 @@ function initAccounts() {
     }
     el("acctSignedOut").style.display = "none";
     el("acctSignedIn").style.display = "";
-    el("acctName").textContent = user.displayName || "Hunter";
+    el("acctName").textContent = user.displayName || user.email || "Hunter";
     try {
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
@@ -3261,7 +3333,7 @@ function initAccounts() {
   function renderClaim() {
     const hint = el("claimHint"), btn = el("btnClaimPlaytest"), res = el("claimResult");
     if (!user) {
-      hint.textContent = "Sign in with Google above to claim your playtest points.";
+      hint.textContent = "Sign in above to claim your playtest points.";
       btn.style.display = "none"; res.style.display = "none";
       return;
     }
@@ -3309,7 +3381,7 @@ function initAccounts() {
 
   /* Leaderboard: live top 50, public read, own row highlighted. */
   boardOpenImpl = function () {
-    el("boardHint").textContent = user ? "" : "Sign in with Google (in the Earn panel) to join the leaderboard — your points appear here once you do.";
+    el("boardHint").textContent = user ? "" : "Sign in (in the Earn panel) to join the leaderboard — your points appear here once you do.";
     if (boardUnsub) return;
     const q = query(collection(db, "leaderboard"), orderBy("points", "desc"), limit(50));
     boardUnsub = onSnapshot(q, (snap) => {
