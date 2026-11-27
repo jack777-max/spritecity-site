@@ -2792,10 +2792,13 @@ function tagTimer(name, until) {
 }
 
 /* ---------------- Rendering ---------------- */
+var VIEWW = 0, VIEWH = 0; /* visible world size, set every frame (zoom-aware) */
 function render(now) {
   var W = cv.width, H = cv.height, dpr = devicePixelRatio;
-  var vw = W / dpr, vh = H / dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var ZOOM = 0.78; /* camera pulled back so more of the city fits on screen */
+  var vw = W / dpr / ZOOM, vh = H / dpr / ZOOM;
+  VIEWW = vw; VIEWH = vh;
+  ctx.setTransform(dpr * ZOOM, 0, 0, dpr * ZOOM, 0, 0);
   var camX = Math.max(0, Math.min(WORLD - vw, player.x - vw / 2));
   var camY = Math.max(0, Math.min(WORLD - vh, player.y - vh / 2));
   if (WORLD < vw) camX = (WORLD - vw) / 2;
@@ -2884,7 +2887,7 @@ function roundRect(x, y, w, h, r) {
 }
 function drawWild(w, camX, camY, now) {
   var x = w.x - camX, y = w.y - camY;
-  if (x < -60 || y < -60 || x > innerWidth + 60 || y > innerHeight + 60) return;
+  if (x < -60 || y < -60 || x > VIEWW + 60 || y > VIEWH + 60) return;
   var bobY = Math.sin(now / 300 + w.bob) * 3;
   ctx.fillStyle = "rgba(0,0,0,.35)";
   ctx.beginPath(); ctx.ellipse(x, y + 16, 15, 5, 0, 0, 7); ctx.fill();
@@ -2991,14 +2994,14 @@ function drawVehicle(camX, camY, now) {
 function drawRival(r, camX, camY, now) {
   if (r.state === "down") return;
   var x = r.x - camX, y = r.y - camY;
-  if (x < -50 || y < -50 || x > innerWidth + 50 || y > innerHeight + 50) return;
+  if (x < -50 || y < -50 || x > VIEWW + 50 || y > VIEWH + 50) return;
   drawWalkerFigure(x, y, r.walk || 0, (r.faceX != null ? r.faceX : (r.face || 1)), r.faceY || 0,
     { body: "#e0483e", dark: "#a12b2b", skin: "#e8b08a", hair: "#7a1f1f", pants: "#23242c" }, "#ff5252");
   if (r.hurtT > 0) { ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.beginPath(); ctx.arc(x, y - 2, 15, 0, 7); ctx.fill(); }
 }
 function drawDrone(d, camX, camY, now) {
   var x = d.x - camX, y = d.y - camY + Math.sin(now / 240 + d.x) * 3;
-  if (x < -40 || y < -40 || x > innerWidth + 40 || y > innerHeight + 40) return;
+  if (x < -40 || y < -40 || x > VIEWW + 40 || y > VIEWH + 40) return;
   ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(x, y + 16, 10, 3.6, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = "#9aa1b1"; ctx.lineWidth = 2;
   var ra = now / 60;
@@ -3013,7 +3016,7 @@ function drawDrone(d, camX, camY, now) {
 }
 function drawPickup(q, camX, camY, now) {
   var x = q.x - camX, y = q.y - camY + Math.sin(now / 300 + q.bob) * 3;
-  if (x < -40 || y < -40 || x > innerWidth + 40 || y > innerHeight + 40) return;
+  if (x < -40 || y < -40 || x > VIEWW + 40 || y > VIEWH + 40) return;
   ctx.fillStyle = "rgba(255,210,63,.16)"; ctx.beginPath(); ctx.arc(x, y, 15, 0, 7); ctx.fill();
   ctx.strokeStyle = "#ffd23f"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, 15, 0, 7); ctx.stroke();
   ctx.font = "15px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -3022,7 +3025,7 @@ function drawPickup(q, camX, camY, now) {
 }
 function drawPackage(p, camX, camY, now) {
   var x = p.x - camX, y = p.y - camY;
-  if (x < -40 || y < -40 || x > innerWidth + 40 || y > innerHeight + 40) return;
+  if (x < -40 || y < -40 || x > VIEWW + 40 || y > VIEWH + 40) return;
   ctx.strokeStyle = "#ff8c1a"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(x, y, 19 + Math.sin(now / 260 + p.bob) * 3, 0, 7); ctx.stroke();
   ctx.font = "24px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -3032,7 +3035,7 @@ function drawDestination(camX, camY, now) {
   var x = delivery.x - camX, y = delivery.y - camY;
   var dm = Math.round(Math.hypot(player.x - delivery.x, player.y - delivery.y) / 10);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  if (x > 10 && y > 10 && x < innerWidth - 10 && y < innerHeight - 10) {
+  if (x > 10 && y > 10 && x < VIEWW - 10 && y < VIEWH - 10) {
     ctx.strokeStyle = "#37d67a"; ctx.lineWidth = 2.4;
     ctx.beginPath(); ctx.arc(x, y, 16 + Math.sin(now / 240) * 3, 0, 7); ctx.stroke();
     ctx.font = "26px sans-serif"; ctx.fillText("🏁", x, y - 4);
@@ -3040,7 +3043,7 @@ function drawDestination(camX, camY, now) {
     ctx.fillText(dm + "m", x, y + 24);
   } else {
     /* guiding arrow clamped to the screen edge, pointing at the flag */
-    var ax = Math.max(36, Math.min(innerWidth - 36, x)), ay = Math.max(92, Math.min(innerHeight - 40, y));
+    var ax = Math.max(36, Math.min(VIEWW - 36, x)), ay = Math.max(92, Math.min(VIEWH - 40, y));
     ctx.save(); ctx.translate(ax, ay); ctx.rotate(Math.atan2(y - ay, x - ax));
     ctx.fillStyle = "#37d67a";
     ctx.beginPath(); ctx.moveTo(17, 0); ctx.lineTo(-9, -11); ctx.lineTo(-9, 11); ctx.closePath(); ctx.fill();
