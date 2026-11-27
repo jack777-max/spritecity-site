@@ -2691,6 +2691,7 @@ function update(dt, now) {
         if (!collides(r.x, mvy, 13)) r.y = mvy;
         r.walk += dt * 8;
         if (Math.abs(rdx) > 1) r.face = rdx > 0 ? 1 : -1;
+        if (rl > 0.01) { r.faceX = rdx / rl; r.faceY = rdy / rl; }
       }
     }
     if (!veh && Math.hypot(player.x - r.x, player.y - r.y) < 30) startArena(r);
@@ -2908,24 +2909,60 @@ function drawWild(w, camX, camY, now) {
     }
   }
 }
-function drawPlayer(camX, camY, now) {
-  var x = player.x - camX, y = player.y - camY;
-  var bobY = Math.abs(Math.sin(player.walk)) * 2;
+/* Directional walker: the body turns toward the movement direction.
+   Side view (profile, legs stepping sideways) when moving mostly
+   horizontally, back view when moving up, front view when moving down.
+   Without this the character slid sideways like a crab. */
+function drawWalkerFigure(x, y, walk, fx, fy, c, marker) {
+  var bobY = Math.abs(Math.sin(walk)) * 2;
+  var lp = Math.sin(walk) * 5;
   ctx.fillStyle = "rgba(0,0,0,.4)";
   ctx.beginPath(); ctx.ellipse(x, y + 15, 13, 5, 0, 0, 7); ctx.fill();
-  /* legs */
-  ctx.fillStyle = "#23242c";
-  var lp = Math.sin(player.walk) * 5;
-  ctx.fillRect(x - 7, y + 6 + Math.max(0, lp), 5, 8);
-  ctx.fillRect(x + 2, y + 6 + Math.max(0, -lp), 5, 8);
-  /* body — hoodie */
-  ctx.fillStyle = "#ffd23f"; roundRect(x - 10, y - 6 - bobY, 20, 15, 5); ctx.fill();
-  ctx.fillStyle = "#d9a514"; roundRect(x - 10, y + 3 - bobY, 20, 6, 3); ctx.fill();
-  /* head */
-  ctx.fillStyle = "#f2c79b"; ctx.beginPath(); ctx.arc(x, y - 12 - bobY, 7.5, 0, 7); ctx.fill();
-  ctx.fillStyle = "#20222b"; ctx.beginPath(); ctx.arc(x, y - 14.5 - bobY, 7.5, Math.PI, 0); ctx.fill();
-  /* facing tick */
-  ctx.fillStyle = "#fff"; ctx.fillRect(x + player.dir * 6 - 1, y - 13 - bobY, 2, 2);
+  if (Math.abs(fx) >= Math.abs(fy) && Math.abs(fx) > 0.01) {
+    /* side profile, flipped to face the walk direction */
+    var d = fx >= 0 ? 1 : -1;
+    ctx.save(); ctx.translate(x, y); ctx.scale(d, 1);
+    ctx.fillStyle = c.pants;
+    var s1 = Math.sin(walk) * 4.5;
+    ctx.fillRect(1 + s1, 6 - Math.max(0, -Math.cos(walk)) * 1.6, 5, 8);
+    ctx.fillRect(-6 - s1, 6 - Math.max(0, Math.cos(walk)) * 1.6, 5, 8);
+    ctx.fillStyle = c.body; roundRect(-6, -6 - bobY, 14, 15, 5); ctx.fill();
+    ctx.fillStyle = c.dark; roundRect(-6, 3 - bobY, 14, 6, 3); ctx.fill();
+    ctx.fillStyle = c.dark; roundRect(-2 - s1 * 0.7, -3 - bobY, 4.5, 10, 2); ctx.fill();
+    ctx.fillStyle = c.hair; ctx.beginPath(); ctx.arc(-1, -13 - bobY, 7.5, 0, 7); ctx.fill();
+    ctx.fillStyle = c.skin; ctx.beginPath(); ctx.arc(1.8, -11.6 - bobY, 6.6, 0, 7); ctx.fill();
+    ctx.fillStyle = c.hair; ctx.beginPath(); ctx.arc(0.4, -12.6 - bobY, 7.2, Math.PI * 0.8, Math.PI * 1.95); ctx.fill();
+    ctx.fillStyle = c.skin; ctx.fillRect(7.4, -12.4 - bobY, 2.2, 2.6);
+    ctx.fillStyle = "#20222b"; ctx.fillRect(4.4, -13.4 - bobY, 1.8, 1.8);
+    ctx.restore();
+  } else if (fy < -0.01) {
+    /* back view */
+    ctx.fillStyle = c.pants;
+    ctx.fillRect(x - 7, y + 6 + Math.max(0, lp), 5, 8);
+    ctx.fillRect(x + 2, y + 6 + Math.max(0, -lp), 5, 8);
+    ctx.fillStyle = c.body; roundRect(x - 10, y - 6 - bobY, 20, 15, 5); ctx.fill();
+    ctx.fillStyle = c.dark; roundRect(x - 10, y + 3 - bobY, 20, 6, 3); ctx.fill();
+    ctx.fillStyle = c.dark; roundRect(x - 6, y - 8 - bobY, 12, 6, 3); ctx.fill();
+    ctx.fillStyle = c.hair; ctx.beginPath(); ctx.arc(x, y - 12 - bobY, 7.5, 0, 7); ctx.fill();
+  } else {
+    /* front view */
+    ctx.fillStyle = c.pants;
+    ctx.fillRect(x - 7, y + 6 + Math.max(0, lp), 5, 8);
+    ctx.fillRect(x + 2, y + 6 + Math.max(0, -lp), 5, 8);
+    ctx.fillStyle = c.body; roundRect(x - 10, y - 6 - bobY, 20, 15, 5); ctx.fill();
+    ctx.fillStyle = c.dark; roundRect(x - 10, y + 3 - bobY, 20, 6, 3); ctx.fill();
+    ctx.fillStyle = c.skin; ctx.beginPath(); ctx.arc(x, y - 12 - bobY, 7.5, 0, 7); ctx.fill();
+    ctx.fillStyle = c.hair; ctx.beginPath(); ctx.arc(x, y - 14.5 - bobY, 7.5, Math.PI, 0); ctx.fill();
+  }
+  if (marker) {
+    ctx.fillStyle = marker;
+    ctx.beginPath(); ctx.moveTo(x, y - 29 - bobY); ctx.lineTo(x - 5, y - 37 - bobY); ctx.lineTo(x + 5, y - 37 - bobY); ctx.closePath(); ctx.fill();
+  }
+}
+function drawPlayer(camX, camY, now) {
+  var x = player.x - camX, y = player.y - camY;
+  drawWalkerFigure(x, y, player.walk, player.faceX || 1, player.faceY || 0,
+    { body: "#ffd23f", dark: "#d9a514", skin: "#f2c79b", hair: "#20222b", pants: "#23242c" }, null);
   if (player.hurtT > 0) { ctx.fillStyle = "rgba(255,60,60,.45)"; ctx.beginPath(); ctx.arc(x, y - 2, 15, 0, 7); ctx.fill(); }
 }
 function drawBikeAt(x, y, ang) {
@@ -2955,19 +2992,8 @@ function drawRival(r, camX, camY, now) {
   if (r.state === "down") return;
   var x = r.x - camX, y = r.y - camY;
   if (x < -50 || y < -50 || x > innerWidth + 50 || y > innerHeight + 50) return;
-  var bobY = Math.abs(Math.sin(r.walk || 0)) * 2;
-  ctx.fillStyle = "rgba(0,0,0,.4)";
-  ctx.beginPath(); ctx.ellipse(x, y + 15, 13, 5, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = "#23242c";
-  var lp = Math.sin(r.walk || 0) * 5;
-  ctx.fillRect(x - 7, y + 6 + Math.max(0, lp), 5, 8);
-  ctx.fillRect(x + 2, y + 6 + Math.max(0, -lp), 5, 8);
-  ctx.fillStyle = "#e0483e"; roundRect(x - 10, y - 6 - bobY, 20, 15, 5); ctx.fill();
-  ctx.fillStyle = "#a12b2b"; roundRect(x - 10, y + 3 - bobY, 20, 6, 3); ctx.fill();
-  ctx.fillStyle = "#e8b08a"; ctx.beginPath(); ctx.arc(x, y - 12 - bobY, 7.5, 0, 7); ctx.fill();
-  ctx.fillStyle = "#7a1f1f"; ctx.beginPath(); ctx.arc(x, y - 14.5 - bobY, 7.5, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = "#ff5252";
-  ctx.beginPath(); ctx.moveTo(x, y - 29 - bobY); ctx.lineTo(x - 5, y - 37 - bobY); ctx.lineTo(x + 5, y - 37 - bobY); ctx.closePath(); ctx.fill();
+  drawWalkerFigure(x, y, r.walk || 0, (r.faceX != null ? r.faceX : (r.face || 1)), r.faceY || 0,
+    { body: "#e0483e", dark: "#a12b2b", skin: "#e8b08a", hair: "#7a1f1f", pants: "#23242c" }, "#ff5252");
   if (r.hurtT > 0) { ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.beginPath(); ctx.arc(x, y - 2, 15, 0, 7); ctx.fill(); }
 }
 function drawDrone(d, camX, camY, now) {
