@@ -2879,8 +2879,12 @@ function render(now) {
   /* rival hunters */
   rivals.forEach(function (r) { drawRival(r, camX, camY, now); });
   /* passenger companion (waits in the park until invited) */
-  if (!veh) drawWalkerFigure(buddy.x - camX, buddy.y - camY, buddy.walk, buddy.faceX, buddy.faceY,
-    { body: "#ff7eb6", dark: "#d14f8d", skin: "#f7cf9f", hair: "#5a3a22", pants: "#3a3f52" }, null);
+  if (!veh) {
+    drawWalkerFigure(buddy.x - camX, buddy.y - camY, buddy.walk, buddy.faceX, buddy.faceY,
+      { body: "#ff7eb6", dark: "#d14f8d", skin: "#f7cf9f", hair: "#5a3a22", pants: "#3a3f52" }, "#ff7eb6");
+    ctx.font = "14px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("💗", buddy.x - camX, buddy.y - camY - 44 + Math.sin(now / 300) * 2.5);
+  }
   /* loot pickups */
   pickups.forEach(function (q) { drawPickup(q, camX, camY, now); });
   /* V4: City Run package pickups + delivery destination */
