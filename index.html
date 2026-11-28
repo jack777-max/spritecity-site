@@ -758,7 +758,8 @@ var SHOP = [
   { id: "lure", name: "Lure", desc: "Wild sprites spawn much faster for 10 minutes.", price: { points: 120 }, tokenPrice: null, give: { boost: "lure", mins: 10 } },
   { id: "radar", name: "Radar", desc: "Reveals rare & golden sprite positions on the minimap for 5 minutes.", price: { points: 80 }, tokenPrice: null, give: { boost: "radar", mins: 5 } },
   { id: "energy", name: "Energy Drink", desc: "Restores 60 energy right away.", price: { points: 30 }, tokenPrice: null, give: { energy: 60 } },
-  { id: "blaster", name: "Orb Blaster", desc: "Gear (one-time): fire orb projectiles with J / SHOOT to weaken wild sprites before a catch and to hit rival hunters in arena duels. Ammo = your catch orbs — every shot spends one.", price: { points: 300 }, tokenPrice: null, give: { gear: "blaster" } }
+  { id: "blaster", name: "Orb Blaster", desc: "Gear (one-time): fire orb projectiles with J / SHOOT to weaken wild sprites before a catch and to hit rival hunters in arena duels. Ammo = your catch orbs — every shot spends one.", price: { points: 300 }, tokenPrice: null, give: { gear: "blaster" } },
+  { id: "armor", name: "City Armor", desc: "Gear (one-time): a steel vest. Take 30% less damage in arena duels.", price: { points: 500 }, tokenPrice: null, give: { gear: "armor" } }
 ];
 var CHECKIN_REWARDS = [50, 75, 100, 150, 200, 300, 500];
 var DISTRICTS = ["Uptown", "Parkside", "Old Town", "Market Row", "Downtown", "University Quarter", "Harborfront", "Garden District", "Suburbs"];
@@ -785,7 +786,7 @@ function defaultSave() {
     districts: [],
     combo: { streak: 0, last: 0 },
     battled: false,
-    blaster: false, wanted: 0, inVehicle: null, fightWins: 0,
+    blaster: false, armor: false, wanted: 0, inVehicle: null, fightWins: 0,
     deliver: { done: 0, best: 1, earned: 0, streak: 0 }
   };
 }
@@ -1433,7 +1434,15 @@ function exitVehicle() {
 function toggleVehicle() {
   if (battle) return;
   if (veh) exitVehicle();
-  else { var n = nearestVehicle(); if (n) enterVehicle(n); }
+  else {
+    var n = nearestVehicle();
+    if (n) enterVehicle(n);
+    else if (buddy.follow || Math.hypot(player.x - buddy.x, player.y - buddy.y) < 44) {
+      buddy.follow = !buddy.follow;
+      toast(buddy.follow ? "💗 She joins you! She will follow you around the city." : "💗 She waits here for now.", "good");
+      refreshActionBtns();
+    }
+  }
 }
 /* --- V3: arena duels — side-view 1v1, best of 3 rounds.
    Original generic fighters only; MK-style presentation (announcements,
@@ -1454,7 +1463,7 @@ function startArena(r) {
     px: 290, rx: 610, pFace: 1, rFace: -1, pWalk: 0, rWalk: 0,
     pAtkT: 0, pAtkDur: 0, pAtkKind: "", pCd: 0, pDidHit: false, pBlock: false, pHurtT: 0,
     rAtkT: 0, rAtkDur: 0, rAtkKind: "", rCd: 0, rDidHit: false, rBlock: false, rBlockT: 0, rHurtT: 0,
-    aiT: 0.6, aiMove: 0, shootCd: 0, shake: 0,
+    aiT: 0.6, aiMove: 0, shootCd: 0, shake: 0, hitStop: 0, pLungeT: 0, rLungeT: 0,
     sparks: [], shots: [], coins: [], fly: null, koLoser: "", slumped: false, finisherDone: false,
     diff: 1 + (S.fightWins || 0) * 0.12
   };
@@ -1519,6 +1528,7 @@ function spawnSparks(x, y, color, n) {
 }
 function hitFighter(target, dmg, heavy, dir) {
   var A = arena, isP = target === "p";
+  if (isP && S.armor) dmg *= 0.7;                 /* City Armor: 30% less duel damage */
   var blocking = isP ? A.pBlock : A.rBlock;
   var fx = isP ? A.px : A.rx;
   if (blocking) {
@@ -1530,6 +1540,7 @@ function hitFighter(target, dmg, heavy, dir) {
   }
   if (isP) { A.php = Math.max(0, A.php - dmg); A.px += dir * (heavy ? 16 : 9); A.pHurtT = 0.28; }
   else { A.rhp = Math.max(0, A.rhp - dmg); A.rx += dir * (heavy ? 16 : 9); A.rHurtT = 0.28; }
+  A.hitStop = heavy ? 0.11 : 0.06;                /* hit-stop: brief freeze so hits land with weight */
   spawnSparks(fx - dir * 30, AGY - 98, heavy ? "#ffd23f" : "#fff2c9", heavy ? 12 : 7);
   if (heavy) A.shake = Math.max(A.shake, 8);
 }
@@ -1540,6 +1551,7 @@ function arenaAttack(kind) {
   arena.pAtkKind = kind;
   arena.pAtkDur = kind === "punch" ? 0.2 : 0.3;
   arena.pAtkT = arena.pAtkDur;
+  arena.pLungeT = 0.13;
   arena.pCd = kind === "punch" ? 0.34 : 0.58;
   arena.pDidHit = false;
 }
@@ -1615,6 +1627,7 @@ function arenaAI(dt) {
     if (A.rCd <= 0 && !A.rBlock && dist <= 124 && Math.random() < 0.42 + A.diff * 0.1) {
       var kind = dist <= 94 && Math.random() < 0.6 ? "punch" : "kick";
       A.rAtkKind = kind; A.rAtkDur = kind === "punch" ? 0.2 : 0.3; A.rAtkT = A.rAtkDur;
+      A.rLungeT = 0.13;
       A.rCd = (kind === "punch" ? 0.52 : 0.82) / A.diff; A.rDidHit = false;
     }
   }
@@ -1626,6 +1639,9 @@ function arenaAI(dt) {
 function arenaFightStep(dt) {
   var A = arena;
   A.pFace = A.rx >= A.px ? 1 : -1; A.rFace = -A.pFace;
+  /* attack lunge: fighters step into their strikes */
+  if (A.pLungeT > 0) { A.px += A.pFace * 430 * dt; A.pLungeT = Math.max(0, A.pLungeT - dt); }
+  if (A.rLungeT > 0) { A.rx += A.rFace * 430 * dt; A.rLungeT = Math.max(0, A.rLungeT - dt); }
   var left = keys["a"] || keys["arrowleft"] || arenaBtn.left || joy.dx < -0.35;
   var right = keys["d"] || keys["arrowright"] || arenaBtn.right || joy.dx > 0.35;
   A.pBlock = !!(keys["s"] || keys["arrowdown"] || arenaBtn.block) && A.pAtkT <= 0;
@@ -1665,11 +1681,15 @@ function arenaUpdate(dt, now) {
   var gs = Math.min(1, dt * 3.2);
   A.ghostP = A.ghostP > A.php ? A.ghostP + (A.php - A.ghostP) * gs : A.php;
   A.ghostR = A.ghostR > A.rhp ? A.ghostR + (A.rhp - A.ghostR) * gs : A.rhp;
-  A.pCd = Math.max(0, A.pCd - dt); A.rCd = Math.max(0, A.rCd - dt);
-  A.shootCd = Math.max(0, A.shootCd - dt);
-  if (A.pAtkT > 0) A.pAtkT -= dt;
-  if (A.rAtkT > 0) A.rAtkT -= dt;
-  A.pHurtT = Math.max(0, A.pHurtT - dt); A.rHurtT = Math.max(0, A.rHurtT - dt);
+  var frozen = A.hitStop > 0;                     /* hit-stop freezes fighters, not sparks/coins */
+  if (frozen) A.hitStop -= dt;
+  if (!frozen) {
+    A.pCd = Math.max(0, A.pCd - dt); A.rCd = Math.max(0, A.rCd - dt);
+    A.shootCd = Math.max(0, A.shootCd - dt);
+    if (A.pAtkT > 0) A.pAtkT -= dt;
+    if (A.rAtkT > 0) A.rAtkT -= dt;
+    A.pHurtT = Math.max(0, A.pHurtT - dt); A.rHurtT = Math.max(0, A.rHurtT - dt);
+  }
   A.shake = Math.max(0, A.shake - dt * 26);
   for (var si = A.sparks.length - 1; si >= 0; si--) {
     var sp = A.sparks[si]; sp.t += dt; sp.x += sp.vx * dt; sp.y += sp.vy * dt; sp.vy += 300 * dt;
@@ -1696,8 +1716,7 @@ function arenaUpdate(dt, now) {
     if (A.phaseT > 1.6) { A.phase = "fight"; A.phaseT = 0; A.announceOff = 0.5; }
   } else if (A.phase === "fight") {
     if (A.announceOff > 0) { A.announceOff -= dt; if (A.announceOff <= 0) setAnnounce(""); }
-    A.timer -= dt;
-    arenaFightStep(dt);
+    if (!frozen) { A.timer -= dt; arenaFightStep(dt); }
     if (A.php <= 0 || A.rhp <= 0) arenaKO(A.rhp <= 0 && A.php > 0 ? "p" : (A.php <= 0 && A.rhp > 0 ? "r" : (A.php >= A.rhp ? "p" : "r")), false);
     else if (A.timer <= 0) arenaKO(A.php >= A.rhp ? "p" : "r", true);
   } else if (A.phase === "ko") {
@@ -1777,6 +1796,12 @@ function drawArenaFighter(c, x, gy, face, col, o) {
   }
   var sway = o.dizzy ? Math.sin(performance.now() / 160) * 4 : 0;
   c.translate(sway, 0);
+  /* fight feel: lunge lean + dip on attacks, recoil on hurt, idle breathing */
+  var atkP = o.atkP != null ? o.atkP : (o.atk ? 0.5 : 0);
+  var hurtP = o.hurtP || 0;
+  var tb = bob + Math.sin(performance.now() / 300 + x * 0.013) * 1.1;
+  c.translate(Math.sin(atkP * Math.PI) * 9 - hurtP * 7, Math.sin(atkP * Math.PI) * 2);
+  c.rotate(Math.sin(atkP * Math.PI) * (o.kind === "kick" ? -0.10 : 0.13) - hurtP * 0.16);
   /* legs */
   c.fillStyle = col.pants;
   if (o.atk && o.kind === "kick") {
@@ -1789,43 +1814,47 @@ function drawArenaFighter(c, x, gy, face, col, o) {
     c.fillRect(4, -76 - bob, 11, 64);
     c.fillStyle = "#101114"; c.fillRect(-16, -14 + bob, 15, 6); c.fillRect(2, -14 - bob, 15, 6);
   }
-  /* torso */
-  c.fillStyle = col.main; arr(c, -18, -130 + bob, 37, 58, 9); c.fill();
-  c.fillStyle = col.dark; arr(c, -18, -84 + bob, 37, 12, 5); c.fill();
+  /* torso (tb = breathing torso bob; legs keep the walk bob) */
+  c.fillStyle = col.main; arr(c, -18, -130 + tb, 37, 58, 9); c.fill();
+  c.fillStyle = col.dark; arr(c, -18, -84 + tb, 37, 12, 5); c.fill();
+  if (o.armor) { /* City Armor: steel chest plate over the torso */
+    c.fillStyle = "#9aa5b5"; arr(c, -18, -128 + tb, 37, 30, 8); c.fill();
+    c.fillStyle = "#6e7889"; arr(c, -18, -104 + tb, 37, 8, 4); c.fill();
+  }
   /* back arm */
-  c.fillStyle = col.dark; arr(c, -24, -124 + bob, 10, 38, 5); c.fill();
+  c.fillStyle = col.dark; arr(c, -24, -124 + tb, 10, 38, 5); c.fill();
   /* front arm / block guard */
   if (o.block) {
-    c.fillStyle = col.dark; arr(c, 16, -126 + bob, 10, 46, 5); c.fill();
-    arr(c, 24, -118 + bob, 9, 40, 4); c.fill();
+    c.fillStyle = col.dark; arr(c, 16, -126 + tb, 10, 46, 5); c.fill();
+    arr(c, 24, -118 + tb, 9, 40, 4); c.fill();
     c.strokeStyle = "rgba(154,209,255,.75)"; c.lineWidth = 4;
-    c.beginPath(); c.arc(34, -102 + bob, 36, -1.1, 1.1); c.stroke();
+    c.beginPath(); c.arc(34, -102 + tb, 36, -1.1, 1.1); c.stroke();
   } else if (o.atk && o.kind === "punch") {
-    c.fillStyle = col.main; arr(c, 8, -122 + bob, 60, 12, 6); c.fill();
-    c.fillStyle = col.skin; c.beginPath(); c.arc(70, -116 + bob, 8, 0, 7); c.fill();
+    c.fillStyle = col.main; arr(c, 8, -122 + tb, 60, 12, 6); c.fill();
+    c.fillStyle = col.skin; c.beginPath(); c.arc(70, -116 + tb, 8, 0, 7); c.fill();
   } else {
-    c.fillStyle = col.main; arr(c, 8, -120 + bob, 11, 40, 5); c.fill();
-    c.fillStyle = col.skin; c.beginPath(); c.arc(13, -78 + bob, 7, 0, 7); c.fill();
+    c.fillStyle = col.main; arr(c, 8, -120 + tb, 11, 40, 5); c.fill();
+    c.fillStyle = col.skin; c.beginPath(); c.arc(13, -78 + tb, 7, 0, 7); c.fill();
   }
   /* head */
-  c.fillStyle = col.skin; c.beginPath(); c.arc(2, -146 + bob, 13.5, 0, 7); c.fill();
-  c.fillStyle = col.hair; c.beginPath(); c.arc(2, -150 + bob, 13.5, Math.PI * 0.95, Math.PI * 2.02); c.fill();
+  c.fillStyle = col.skin; c.beginPath(); c.arc(2, -146 + tb, 13.5, 0, 7); c.fill();
+  c.fillStyle = col.hair; c.beginPath(); c.arc(2, -150 + tb, 13.5, Math.PI * 0.95, Math.PI * 2.02); c.fill();
   if (o.dizzy || o.down) {
     c.strokeStyle = "#14151c"; c.lineWidth = 2;
     c.beginPath();
-    c.moveTo(6, -151 + bob); c.lineTo(13, -144 + bob); c.moveTo(13, -151 + bob); c.lineTo(6, -144 + bob);
+    c.moveTo(6, -151 + tb); c.lineTo(13, -144 + tb); c.moveTo(13, -151 + tb); c.lineTo(6, -144 + tb);
     c.stroke();
     if (o.dizzy) {
       c.fillStyle = "#ffe97a";
       for (var si2 = 0; si2 < 3; si2++) {
         var sa = performance.now() / 240 + si2 * 2.1;
-        c.fillRect(Math.cos(sa) * 20 - 1.5, -168 + bob + Math.sin(sa) * 5, 3.4, 3.4);
+        c.fillRect(Math.cos(sa) * 20 - 1.5, -168 + tb + Math.sin(sa) * 5, 3.4, 3.4);
       }
     }
   } else {
-    c.fillStyle = "#14151c"; c.fillRect(8, -148 + bob, 3, 3);
+    c.fillStyle = "#14151c"; c.fillRect(8, -148 + tb, 3, 3);
   }
-  if (o.hurt) { c.fillStyle = "rgba(255,60,60,.32)"; c.beginPath(); c.arc(0, -104 + bob, 34, 0, 7); c.fill(); }
+  if (o.hurt) { c.fillStyle = "rgba(255,60,60,.32)"; c.beginPath(); c.arc(0, -104 + tb, 34, 0, 7); c.fill(); }
   c.restore();
 }
 function renderArena(now) {
@@ -1848,9 +1877,9 @@ function renderArena(now) {
   });
   var pDown = (A.phase === "ko" || A.phase === "done") && A.koLoser === "p";
   var rDown = ((A.phase === "ko") && A.koLoser === "r") || (A.phase === "done" && A.slumped);
-  drawArenaFighter(c, A.px, AGY, A.pFace, PLAYER_COL, { atk: A.pAtkT > 0, kind: A.pAtkKind, block: A.pBlock, hurt: A.pHurtT > 0, walk: A.pWalk, down: pDown });
+  drawArenaFighter(c, A.px, AGY, A.pFace, PLAYER_COL, { atk: A.pAtkT > 0, kind: A.pAtkKind, block: A.pBlock, hurt: A.pHurtT > 0, walk: A.pWalk, down: pDown, atkP: A.pAtkDur > 0 ? 1 - A.pAtkT / A.pAtkDur : 0, hurtP: Math.min(1, A.pHurtT / 0.28), armor: !!S.armor });
   if (A.fly) drawArenaFighter(c, A.fly.x, A.fly.y, A.rFace, RIVAL_COL, { flyRot: A.fly.rot });
-  else drawArenaFighter(c, A.rx, AGY, A.rFace, RIVAL_COL, { atk: A.rAtkT > 0, kind: A.rAtkKind, block: A.rBlock, hurt: A.rHurtT > 0, walk: A.rWalk, dizzy: A.phase === "finish", down: rDown });
+  else drawArenaFighter(c, A.rx, AGY, A.rFace, RIVAL_COL, { atk: A.rAtkT > 0, kind: A.rAtkKind, block: A.rBlock, hurt: A.rHurtT > 0, walk: A.rWalk, dizzy: A.phase === "finish", down: rDown, atkP: A.rAtkDur > 0 ? 1 - A.rAtkT / A.rAtkDur : 0, hurtP: Math.min(1, A.rHurtT / 0.28) });
   A.coins.forEach(function (cn) {
     c.save(); c.translate(cn.x, cn.y); c.scale(Math.max(0.15, Math.abs(Math.cos(cn.rot))), 1);
     c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(0, 0, 7, 0, 7); c.fill();
@@ -1895,7 +1924,8 @@ function refreshActionBtns() {
   var anyPanel = document.querySelector(".scrim.open");
   var be = document.getElementById("btnEnter");
   if (!be) return;
-  var showEnter = !battle && !anyPanel && (!!veh || !!nearestVehicle());
+  var buddyNear = !veh && (buddy.follow || Math.hypot(player.x - buddy.x, player.y - buddy.y) < 44);
+  var showEnter = !battle && !anyPanel && (!!veh || !!nearestVehicle() || buddyNear);
   be.classList.toggle("show", !!showEnter);
   var lbl = veh ? (veh.kind === "car" ? "🚗 Exit car" : "🏍️ Get off") : "🚗 Enter";
   if (be._lbl !== lbl) { be._lbl = lbl; be.innerHTML = lbl + "<small>E key</small>"; }
@@ -2005,6 +2035,8 @@ SPECIES.forEach(function (sp) {
 
 /* ---------------- Player & wild sprites ---------------- */
 var player = { x: TILE * 2, y: TILE * 2, r: 14, speed: 235, dir: 1, walk: 0, faceX: 1, faceY: 0, hurtT: 0 };
+/* passenger companion — waits in the park (tile 3,1); press E near her to invite her along. Session-only, not saved. */
+var buddy = { x: 3 * TILE + TILE / 2 + 90, y: TILE + TILE / 2, walk: 0, faceX: 1, faceY: 0, follow: false };
 var wilds = [];
 var spawnTimer = 0, goldTimer = 20;
 
@@ -2505,6 +2537,7 @@ function renderShop() {
     if (item.give.boost === "lure" && Date.now() < S.boosts.lureUntil) ownedTxt = "Active now";
     if (item.give.boost === "radar" && Date.now() < S.boosts.radarUntil) ownedTxt = "Active now";
     if (item.give.gear === "blaster" && S.blaster) ownedTxt = "Equipped ✓";
+    if (item.give.gear === "armor" && S.armor) ownedTxt = "Equipped ✓";
     var row = document.createElement("div"); row.className = "row";
     row.innerHTML = "<div class='grow'><div class='name'>" + item.name + "</div><div class='desc'>" + item.desc + "</div>" +
       (ownedTxt ? "<div class='desc' style='color:var(--green);font-weight:700'>" + ownedTxt + "</div>" : "") + "</div>";
@@ -2512,7 +2545,7 @@ function renderShop() {
     var price = document.createElement("div"); price.className = "price " + (cur === "points" ? "pts" : "shd");
     price.textContent = (cur === "points" ? "⭐ " : "◆ ") + cost;
     var btn = document.createElement("button"); btn.className = "buy"; btn.type = "button"; btn.textContent = "Buy";
-    btn.disabled = bal < cost || (item.give.gear === "blaster" && S.blaster);
+    btn.disabled = bal < cost || (item.give.gear === "blaster" && S.blaster) || (item.give.gear === "armor" && S.armor);
     btn.addEventListener("click", function () {
       if (cur === "points") S.points -= cost; else S.shards -= cost;
       var g = item.give;
@@ -2521,6 +2554,7 @@ function renderShop() {
       if (g.boost === "lure") S.boosts.lureUntil = Math.max(Date.now(), S.boosts.lureUntil) + g.mins * 60000;
       if (g.boost === "radar") S.boosts.radarUntil = Math.max(Date.now(), S.boosts.radarUntil) + g.mins * 60000;
       if (g.gear === "blaster") S.blaster = true;
+      if (g.gear === "armor") S.armor = true;
       save(); refreshHUD(); renderShop();
       toast("🛒 Bought " + item.name, "good");
     });
@@ -2696,6 +2730,22 @@ function update(dt, now) {
     }
     if (!veh && Math.hypot(player.x - r.x, player.y - r.y) < 30) startArena(r);
   });
+  /* passenger companion — follows on foot, rides along in vehicles */
+  if (buddy.follow) {
+    if (veh) { buddy.x = player.x; buddy.y = player.y; buddy.walk = 0; }
+    else {
+      var bdx = player.x - buddy.x, bdy = player.y - buddy.y, bl = Math.hypot(bdx, bdy);
+      if (bl > 400) { buddy.x = player.x - bdx / bl * 60; buddy.y = player.y - bdy / bl * 60; }
+      else if (bl > 30) {
+        var bs = bl > 200 ? 300 : 240;
+        var bnx = buddy.x + bdx / bl * bs * dt, bny = buddy.y + bdy / bl * bs * dt;
+        if (!collides(bnx, buddy.y, 13)) buddy.x = bnx;
+        if (!collides(buddy.x, bny, 13)) buddy.y = bny;
+        buddy.walk += dt * 10;
+        buddy.faceX = bdx / bl; buddy.faceY = bdy / bl;
+      }
+    }
+  }
   /* blaster projectiles */
   shootCd = Math.max(0, shootCd - dt);
   for (var pi = projectiles.length - 1; pi >= 0; pi--) {
@@ -2828,6 +2878,9 @@ function render(now) {
   wilds.forEach(function (w) { drawWild(w, camX, camY, now); });
   /* rival hunters */
   rivals.forEach(function (r) { drawRival(r, camX, camY, now); });
+  /* passenger companion (waits in the park until invited) */
+  if (!veh) drawWalkerFigure(buddy.x - camX, buddy.y - camY, buddy.walk, buddy.faceX, buddy.faceY,
+    { body: "#ff7eb6", dark: "#d14f8d", skin: "#f7cf9f", hair: "#5a3a22", pants: "#3a3f52" }, null);
   /* loot pickups */
   pickups.forEach(function (q) { drawPickup(q, camX, camY, now); });
   /* V4: City Run package pickups + delivery destination */
@@ -2988,6 +3041,18 @@ function drawVehicle(camX, camY, now) {
     ctx.fillStyle = "#ffd23f"; roundRect(x - 8, y - 9, 16, 13, 5); ctx.fill();
     ctx.fillStyle = "#f2c79b"; ctx.beginPath(); ctx.arc(x, y - 13, 6.4, 0, 7); ctx.fill();
     ctx.fillStyle = "#20222b"; ctx.beginPath(); ctx.arc(x, y - 15, 6.4, Math.PI, 0); ctx.fill();
+  }
+  if (buddy.follow) { /* passenger rides along */
+    if (veh.kind === "car") {
+      var ppx = x - Math.sin(veh.ang) * 7, ppy = y + Math.cos(veh.ang) * 7;
+      ctx.fillStyle = "#f7cf9f"; ctx.beginPath(); ctx.arc(ppx, ppy, 4.6, 0, 7); ctx.fill();
+      ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.arc(ppx, ppy - 2, 4.6, Math.PI, 0); ctx.fill();
+    } else {
+      var bbx = x - Math.cos(veh.ang) * 10, bby = y - Math.sin(veh.ang) * 10;
+      ctx.fillStyle = "#ff7eb6"; roundRect(bbx - 8, bby - 22, 16, 13, 5); ctx.fill();
+      ctx.fillStyle = "#f7cf9f"; ctx.beginPath(); ctx.arc(bbx, bby - 26, 6.4, 0, 7); ctx.fill();
+      ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.arc(bbx, bby - 28, 6.4, Math.PI, 0); ctx.fill();
+    }
   }
   if (player.hurtT > 0) { ctx.fillStyle = "rgba(255,60,60,.4)"; ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill(); }
 }
