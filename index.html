@@ -1437,10 +1437,19 @@ function toggleVehicle() {
   else {
     var n = nearestVehicle();
     if (n) enterVehicle(n);
-    else if (buddy.follow || Math.hypot(player.x - buddy.x, player.y - buddy.y) < 44) {
-      buddy.follow = !buddy.follow;
-      toast(buddy.follow ? "💗 She joins you! She will follow you around the city." : "💗 She waits here for now.", "good");
-      refreshActionBtns();
+    else {
+      var gb = nearestBuddy(), ab = activeBuddy();
+      if (gb) {
+        var wf = gb.follow;
+        buddies.forEach(function (b) { b.follow = false; });
+        gb.follow = !wf;
+        toast(gb.follow ? "💗 She joins you! She will follow you around the city." : "💗 She waits here for now.", "good");
+        refreshActionBtns();
+      } else if (ab) {
+        ab.follow = false;
+        toast("💗 She waits here for now.", "good");
+        refreshActionBtns();
+      }
     }
   }
 }
@@ -1924,7 +1933,7 @@ function refreshActionBtns() {
   var anyPanel = document.querySelector(".scrim.open");
   var be = document.getElementById("btnEnter");
   if (!be) return;
-  var buddyNear = !veh && (buddy.follow || Math.hypot(player.x - buddy.x, player.y - buddy.y) < 44);
+  var buddyNear = !veh && (!!activeBuddy() || !!nearestBuddy());
   var showEnter = !battle && !anyPanel && (!!veh || !!nearestVehicle() || buddyNear);
   be.classList.toggle("show", !!showEnter);
   var lbl = veh ? (veh.kind === "car" ? "🚗 Exit car" : "🏍️ Get off") : "🚗 Enter";
@@ -2036,7 +2045,21 @@ SPECIES.forEach(function (sp) {
 /* ---------------- Player & wild sprites ---------------- */
 var player = { x: TILE * 2, y: TILE * 2, r: 14, speed: 235, dir: 1, walk: 0, faceX: 1, faceY: 0, hurtT: 0 };
 /* passenger companion — waits in the park (tile 3,1); press E near her to invite her along. Session-only, not saved. */
-var buddy = { x: 3 * TILE + TILE / 2 + 90, y: TILE + TILE / 2, walk: 0, faceX: 1, faceY: 0, follow: false };
+var GIRL_SPOTS = [
+  { x: 3 * TILE + TILE / 2 + 90, y: TILE + TILE / 2, body: "#ff7eb6", dark: "#d14f8d", hair: "#5a3a22" },
+  { x: 1080, y: 1080, body: "#7ec8ff", dark: "#4d8fd1", hair: "#20222b" },
+  { x: 560, y: 1300, body: "#ffd23f", dark: "#d9a514", hair: "#8a5a2b" },
+  { x: 1300, y: 2060, body: "#c77dff", dark: "#9a4dd1", hair: "#3a2b20" },
+  { x: 2060, y: 1500, body: "#ff8c69", dark: "#d1603d", hair: "#20222b" },
+  { x: 900, y: 560, body: "#7dff9a", dark: "#3da35d", hair: "#5a3a22" }
+];
+var buddies = GIRL_SPOTS.map(function (s) {
+  var gx = s.x, gy = s.y, tries = 0;
+  while (collides(gx, gy, 13) && tries < 40) { gx += 24; tries++; }
+  return { x: gx, y: gy, hx: gx, hy: gy, tx: gx, ty: gy, pause: Math.random() * 2, walk: 0, faceX: 1, faceY: 0, follow: false, body: s.body, dark: s.dark, hair: s.hair };
+});
+function activeBuddy() { for (var i = 0; i < buddies.length; i++) if (buddies[i].follow) return buddies[i]; return null; }
+function nearestBuddy() { var best = null, bd = 44; buddies.forEach(function (b) { var d = Math.hypot(player.x - b.x, player.y - b.y); if (d < bd) { bd = d; best = b; } }); return best; }
 var wilds = [];
 var spawnTimer = 0, goldTimer = 20;
 
@@ -2730,22 +2753,39 @@ function update(dt, now) {
     }
     if (!veh && Math.hypot(player.x - r.x, player.y - r.y) < 30) startArena(r);
   });
-  /* passenger companion — follows on foot, rides along in vehicles */
-  if (buddy.follow) {
-    if (veh) { buddy.x = player.x; buddy.y = player.y; buddy.walk = 0; }
+  /* passenger companions — one follows you, the rest stroll near their spots */
+  buddies.forEach(function (b) {
+    if (b.follow) {
+      if (veh) { b.x = player.x; b.y = player.y; b.walk = 0; }
+      else {
+        var bdx = player.x - b.x, bdy = player.y - b.y, bl = Math.hypot(bdx, bdy);
+        if (bl > 400) { b.x = player.x - bdx / bl * 60; b.y = player.y - bdy / bl * 60; }
+        else if (bl > 30) {
+          var bs = bl > 200 ? 300 : 240;
+          var bnx = b.x + bdx / bl * bs * dt, bny = b.y + bdy / bl * bs * dt;
+          if (!collides(bnx, b.y, 13)) b.x = bnx;
+          if (!collides(b.x, bny, 13)) b.y = bny;
+          b.walk += dt * 10;
+          b.faceX = bdx / bl; b.faceY = bdy / bl;
+        }
+      }
+    } else if (b.pause > 0) { b.pause -= dt; }
     else {
-      var bdx = player.x - buddy.x, bdy = player.y - buddy.y, bl = Math.hypot(bdx, bdy);
-      if (bl > 400) { buddy.x = player.x - bdx / bl * 60; buddy.y = player.y - bdy / bl * 60; }
-      else if (bl > 30) {
-        var bs = bl > 200 ? 300 : 240;
-        var bnx = buddy.x + bdx / bl * bs * dt, bny = buddy.y + bdy / bl * bs * dt;
-        if (!collides(bnx, buddy.y, 13)) buddy.x = bnx;
-        if (!collides(buddy.x, bny, 13)) buddy.y = bny;
-        buddy.walk += dt * 10;
-        buddy.faceX = bdx / bl; buddy.faceY = bdy / bl;
+      var wdx = b.tx - b.x, wdy = b.ty - b.y, wl = Math.hypot(wdx, wdy);
+      if (wl < 6) {
+        b.pause = 1 + Math.random() * 2.5;
+        var na = Math.random() * Math.PI * 2, nd = 30 + Math.random() * 60;
+        var cx2 = b.hx + Math.cos(na) * nd, cy2 = b.hy + Math.sin(na) * nd;
+        if (!collides(cx2, cy2, 13)) { b.tx = cx2; b.ty = cy2; }
+      } else {
+        var wnx = b.x + wdx / wl * 55 * dt, wny = b.y + wdy / wl * 55 * dt;
+        if (!collides(wnx, b.y, 13)) b.x = wnx;
+        if (!collides(b.x, wny, 13)) b.y = wny;
+        b.walk += dt * 7;
+        b.faceX = wdx / wl; b.faceY = wdy / wl;
       }
     }
-  }
+  });
   /* blaster projectiles */
   shootCd = Math.max(0, shootCd - dt);
   for (var pi = projectiles.length - 1; pi >= 0; pi--) {
@@ -2878,13 +2918,13 @@ function render(now) {
   wilds.forEach(function (w) { drawWild(w, camX, camY, now); });
   /* rival hunters */
   rivals.forEach(function (r) { drawRival(r, camX, camY, now); });
-  /* passenger companion (waits in the park until invited) */
-  if (!veh) {
-    drawWalkerFigure(buddy.x - camX, buddy.y - camY, buddy.walk, buddy.faceX, buddy.faceY,
-      { body: "#ff7eb6", dark: "#d14f8d", skin: "#f7cf9f", hair: "#5a3a22", pants: "#3a3f52" }, "#ff7eb6");
+  /* passenger companions (stroll the park + streets until invited) */
+  if (!veh) buddies.forEach(function (b) {
+    drawWalkerFigure(b.x - camX, b.y - camY, b.walk, b.faceX, b.faceY,
+      { body: b.body, dark: b.dark, skin: "#f7cf9f", hair: b.hair, pants: "#3a3f52" }, b.body);
     ctx.font = "14px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("💗", buddy.x - camX, buddy.y - camY - 44 + Math.sin(now / 300) * 2.5);
-  }
+    ctx.fillText("💗", b.x - camX, b.y - camY - 44 + Math.sin(now / 300 + b.hx) * 2.5);
+  });
   /* loot pickups */
   pickups.forEach(function (q) { drawPickup(q, camX, camY, now); });
   /* V4: City Run package pickups + delivery destination */
@@ -3046,16 +3086,17 @@ function drawVehicle(camX, camY, now) {
     ctx.fillStyle = "#f2c79b"; ctx.beginPath(); ctx.arc(x, y - 13, 6.4, 0, 7); ctx.fill();
     ctx.fillStyle = "#20222b"; ctx.beginPath(); ctx.arc(x, y - 15, 6.4, Math.PI, 0); ctx.fill();
   }
-  if (buddy.follow) { /* passenger rides along */
+  var abv = activeBuddy();
+  if (abv) { /* passenger rides along */
     if (veh.kind === "car") {
       var ppx = x - Math.sin(veh.ang) * 7, ppy = y + Math.cos(veh.ang) * 7;
       ctx.fillStyle = "#f7cf9f"; ctx.beginPath(); ctx.arc(ppx, ppy, 4.6, 0, 7); ctx.fill();
-      ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.arc(ppx, ppy - 2, 4.6, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = abv.hair; ctx.beginPath(); ctx.arc(ppx, ppy - 2, 4.6, Math.PI, 0); ctx.fill();
     } else {
       var bbx = x - Math.cos(veh.ang) * 10, bby = y - Math.sin(veh.ang) * 10;
-      ctx.fillStyle = "#ff7eb6"; roundRect(bbx - 8, bby - 22, 16, 13, 5); ctx.fill();
+      ctx.fillStyle = abv.body; roundRect(bbx - 8, bby - 22, 16, 13, 5); ctx.fill();
       ctx.fillStyle = "#f7cf9f"; ctx.beginPath(); ctx.arc(bbx, bby - 26, 6.4, 0, 7); ctx.fill();
-      ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.arc(bbx, bby - 28, 6.4, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = abv.hair; ctx.beginPath(); ctx.arc(bbx, bby - 28, 6.4, Math.PI, 0); ctx.fill();
     }
   }
   if (player.hurtT > 0) { ctx.fillStyle = "rgba(255,60,60,.4)"; ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill(); }
